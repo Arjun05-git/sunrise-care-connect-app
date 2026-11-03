@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0F766E" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Sunrise Care" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="description" content="Teleconsultations with Sunrise Chain of Hospitals doctors." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Fonts load without blocking the first paint; display=optional means text never re-flows when they arrive
+         (on a slow first visit the system font is kept, later visits use the cached web font). -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Noto+Sans+Malayalam:wght@400;500;600;700&amp;display=optional" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Noto+Sans+Malayalam:wght@400;500;600;700&amp;display=optional" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Noto+Sans+Malayalam:wght@400;500;600;700&amp;display=optional" /></noscript>
+    <title>Sunrise Care Connect</title>
+    <script>
+      // Apply saved theme before first paint (avoids a light flash in dark mode).
+      try {
+        var p = JSON.parse(localStorage.getItem('scc-prefs') || '{}');
+        var dark = p.theme === 'dark' || (p.theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) document.documentElement.classList.add('dark');
+        if (p.fontScale) document.documentElement.style.setProperty('--font-scale', p.fontScale);
+        if (p.language) document.documentElement.lang = p.language;
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <!-- App shell painted straight from the HTML (no JavaScript needed) while the app loads on a slow
+         connection; React replaces it. Matches BootLoader (src/components/feedback/states.tsx). -->
+    <style>
+      .boot{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#f8fafc;color:#0f172a;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+      .dark .boot{background:#020617;color:#e2e8f0}
+      .boot b{display:block;font-size:20px;font-weight:800;letter-spacing:-.01em}
+      .boot small{display:block;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#0f766e}
+      .dark .boot small{color:#5eead4}
+      .boot i{width:28px;height:28px;border-radius:50%;border:3px solid #ccfbf1;border-top-color:#0f766e;animation:bootspin 1s linear infinite}
+      @keyframes bootspin{to{transform:rotate(360deg)}}
+      @media (prefers-reduced-motion:reduce){.boot i{animation-duration:3s}}
+    </style>
+    <div id="root"><div class="boot" role="status" aria-label="Loading Sunrise Care Connect">
+      <svg width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#0F766E"/><circle cx="32" cy="38" r="12" fill="#FBBF24"/><path d="M14 42h36" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M32 16v6M18 22l4 4M46 22l-4 4" stroke="#FDE68A" stroke-width="3.5" stroke-linecap="round"/><path d="M28 46h8M32 42v8" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>
+      <span style="text-align:center"><b>Sunrise Care</b><small>Connect</small></span>
+      <i aria-hidden="true"></i>
+    </div></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

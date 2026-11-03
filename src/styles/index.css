@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Sunrise design tokens (HSL channels, shadcn/ui convention).
+ * Brand: primary teal #0F766E · primary-soft #CCFBF1 · highlight amber #F59E0B · page #F8FAFC · slate neutrals.
+ * `.light` re-declares the light set so a light panel can be shown inside a dark page (style guide).
+ * Contrast (WCAG 2.1 AA) is checked in docs/DESIGN_TOKENS.md.
+ */
+@layer base {
+  :root,
+  .light {
+    --background: 210 40% 98%;          /* #F8FAFC page */
+    --foreground: 222 47% 11%;          /* slate-900 */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 175 77% 26%;             /* #0F766E teal */
+    --primary-foreground: 0 0% 100%;
+    --primary-soft: 167 85% 89%;        /* #CCFBF1 */
+    --primary-soft-foreground: 176 69% 22%;
+    --secondary: 167 85% 89%;
+    --secondary-foreground: 176 69% 22%;
+    --muted: 210 40% 96%;               /* slate-100 */
+    --muted-foreground: 215 19% 35%;    /* slate-600 */
+    --accent: 166 76% 94%;              /* hover tint (shadcn "accent") */
+    --accent-foreground: 176 69% 22%;
+    --highlight: 38 92% 50%;            /* #F59E0B amber */
+    --highlight-foreground: 222 47% 11%;
+    --highlight-soft: 48 96% 89%;
+    --success: 142 72% 29%;             /* green-700 */
+    --success-foreground: 0 0% 100%;
+    --success-soft: 141 84% 93%;
+    --warning: 26 90% 37%;              /* amber-700 – text-safe warning */
+    --warning-foreground: 0 0% 100%;
+    --warning-soft: 48 96% 89%;
+    --destructive: 0 74% 42%;           /* red-700 */
+    --destructive-foreground: 0 0% 100%;
+    --destructive-soft: 0 93% 94%;
+    --border: 214 32% 91%;              /* slate-200 */
+    --input: 214 32% 85%;
+    --ring: 175 77% 26%;
+    /* chart series (categorical, fixed order; validated for CVD separation on the light card) */
+    --viz-1: #2a78d6;
+    --viz-2: #eb6834;
+    --viz-3: #1baf7a;
+    --viz-4: #eda100;
+    --radius: 1rem;                     /* 16px cards */
+    --font-scale: 1;
+    color-scheme: light;
+  }
+
+  .dark {
+    --background: 229 84% 5%;           /* slate-950 */
+    --foreground: 210 40% 98%;
+    --card: 222 47% 11%;                /* slate-900 */
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 172 66% 50%;             /* teal-400 */
+    --primary-foreground: 179 84% 10%;
+    --primary-soft: 176 61% 19%;        /* teal-900 */
+    --primary-soft-foreground: 166 76% 82%;
+    --secondary: 176 61% 19%;
+    --secondary-foreground: 166 76% 82%;
+    --muted: 217 33% 17%;               /* slate-800 */
+    --muted-foreground: 215 20% 65%;    /* slate-400 */
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+    --highlight: 43 96% 56%;            /* amber-400 */
+    --highlight-foreground: 222 47% 11%;
+    --highlight-soft: 35 77% 16%;
+    --success: 142 69% 58%;
+    --success-foreground: 144 61% 10%;
+    --success-soft: 144 50% 15%;
+    --warning: 43 96% 56%;
+    --warning-foreground: 222 47% 11%;
+    --warning-soft: 35 77% 16%;
+    --destructive: 0 91% 71%;
+    --destructive-foreground: 0 63% 15%;
+    --destructive-soft: 0 55% 19%;
+    --border: 215 25% 27%;              /* slate-700 */
+    --input: 215 25% 32%;
+    --ring: 172 66% 50%;
+    /* the same hues stepped for the dark card */
+    --viz-1: #3987e5;
+    --viz-2: #d95926;
+    --viz-3: #199e70;
+    --viz-4: #c98500;
+    color-scheme: dark;
+  }
+
+  * { @apply border-border; }
+  html {
+    /* Adjustable text size: Settings → Text size scales every rem. Body never below 16px on mobile. */
+    font-size: calc(16px * var(--font-scale));
+    -webkit-tap-highlight-color: transparent;
+  }
+  html[lang='ml'] body { @apply font-ml; }
+  body { @apply bg-background font-sans text-foreground antialiased; min-height: 100dvh; }
+  :focus-visible { @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+}
+
+@layer utilities {
+  .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.25rem); }
+  .safe-top { padding-top: env(safe-area-inset-top); }
+}

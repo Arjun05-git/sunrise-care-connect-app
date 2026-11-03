@@ -1,0 +1,15 @@
+node_modules
+dist
+.env
+.env.local
+*.log
+.local-stack
+.env.mobile
+# Firebase config files and signing keys stay out of git (see docs/MOBILE.md)
+android/app/google-services.json
+ios/App/App/GoogleService-Info.plist
+*.keystore
+*.jks
+a11y-report.json
+perf-report*.json
+supabase/functions/.env

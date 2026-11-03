@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.46.1",
+    "pdf-lib": "npm:pdf-lib@1.17.1",
+    "qrcode-generator": "npm:qrcode-generator@1.4.4"
+  }
+}
