@@ -69,12 +69,45 @@ file_size_limit = "10MiB"
 
 # Webhooks carry no user JWT – they are verified by signature instead.
 [functions.payments-webhook]
+import_map = "./functions/deno.json"
 verify_jwt = false
 [functions.video-webhook]
+import_map = "./functions/deno.json"
 verify_jwt = false
 [functions.notifications-webhook]
+import_map = "./functions/deno.json"
 verify_jwt = false
 [functions.prescription-verify]
+import_map = "./functions/deno.json"
 verify_jwt = false
 [functions.auth-sms-hook]
+import_map = "./functions/deno.json"
 verify_jwt = false
+
+# Every function resolves npm packages through the shared import map (needed by `supabase functions deploy`).
+[functions.abha]
+import_map = "./functions/deno.json"
+[functions.admin-users]
+import_map = "./functions/deno.json"
+[functions.doctor-signature]
+import_map = "./functions/deno.json"
+[functions.documents-register]
+import_map = "./functions/deno.json"
+[functions.integrations-dispatch]
+import_map = "./functions/deno.json"
+[functions.notifications-dispatch]
+import_map = "./functions/deno.json"
+[functions.payments-create-order]
+import_map = "./functions/deno.json"
+[functions.payments-mock-checkout]
+import_map = "./functions/deno.json"
+[functions.payments-receipt]
+import_map = "./functions/deno.json"
+[functions.payments-refund]
+import_map = "./functions/deno.json"
+[functions.payments-verify]
+import_map = "./functions/deno.json"
+[functions.prescription-pdf]
+import_map = "./functions/deno.json"
+[functions.video-token]
+import_map = "./functions/deno.json"
