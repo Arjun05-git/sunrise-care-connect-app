@@ -31,6 +31,8 @@ done
 
 echo "→ database $DB"
 $P -d postgres -c "drop database if exists $DB with (force)" -c "create database $DB"
+# this stack is seeded with demo data and known logins: say so explicitly (an unset environment means production)
+$P -d postgres -c "alter database $DB set app.environment = 'demo'"
 $P -d "$DB" <<'SQL'
 do $$ begin
   if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin noinherit; end if;

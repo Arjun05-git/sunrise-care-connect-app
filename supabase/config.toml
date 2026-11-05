@@ -22,7 +22,7 @@ jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
 # Staff passwords (patients and doctors use phone OTP). The admin console also requires TOTP MFA
-# (app_settings.staff_mfa_required, missing = required).
+# (always in production; only a database with app.environment = 'demo' may relax it - see migration 019).
 minimum_password_length = 12
 password_requirements = "letters_digits"
 
