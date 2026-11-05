@@ -40,5 +40,5 @@ export default defineConfig({
   // dev server on this machine only; DEV_HOST=0.0.0.0 to test from a phone on the same network
   server: { host: process.env.DEV_HOST ?? 'localhost', proxy },
   preview: { proxy },
-  test: { env: { VITE_APP_MODE: 'demo', VITE_DEMO_HINTS: 'false' }, environment: 'jsdom', globals: true, setupFiles: ['src/test/setup.ts'], include: ['src/**/*.test.{ts,tsx}', 'supabase/functions/**/*.test.ts'] },
+  test: { env: { VITE_APP_ENV: 'demo', VITE_APP_MODE: 'demo', VITE_DEMO_HINTS: 'false' }, environment: 'jsdom', globals: true, setupFiles: ['src/test/setup.ts'], include: ['src/**/*.test.{ts,tsx}', 'supabase/functions/**/*.test.ts'] },
 });

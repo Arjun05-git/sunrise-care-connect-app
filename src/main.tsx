@@ -10,13 +10,21 @@ import { AuthProvider } from './auth/AuthProvider';
 import { createAuthService } from './auth/createAuthService';
 import { Toaster } from './components/ui/sonner';
 import { TooltipProvider } from './components/ui/tooltip';
-import { isDemo } from './lib/config';
+import { configError, DEMO_BUILD, isDemo } from './lib/config';
 import { registerServiceWorker } from './lib/pwa';
 import { AppChrome } from './components/layout/AppChrome';
 
 // test-gateway checkout dialog (supabase mode only), loaded on demand
 const MockCheckoutHost = React.lazy(() => import('./services/payments/mock').then((m) => ({ default: m.MockCheckoutHost })));
 
+if (configError) {
+  // Invalid VITE_APP_ENV / VITE_APP_MODE: stop here rather than guess (never fall back to demo).
+  document.getElementById('root')!.textContent = `This build is misconfigured and was stopped: ${configError}.`;
+} else {
+  start();
+}
+
+function start() {
 const authService = createAuthService();
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 15_000, retry: 1 } } });
 
@@ -33,7 +41,7 @@ void (savedLanguage && savedLanguage !== 'en' ? loadLanguage(savedLanguage).catc
               <AppChrome />
               <App />
               <Toaster />
-              {!isDemo && <React.Suspense fallback={null}><MockCheckoutHost /></React.Suspense>}
+              {DEMO_BUILD && !isDemo && <React.Suspense fallback={null}><MockCheckoutHost /></React.Suspense>}
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
@@ -41,3 +49,4 @@ void (savedLanguage && savedLanguage !== 'en' ? loadLanguage(savedLanguage).catc
     </QueryClientProvider>
   </React.StrictMode>,
 ));
+}

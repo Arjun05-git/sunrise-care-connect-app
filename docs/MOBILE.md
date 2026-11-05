@@ -117,6 +117,7 @@ npm run mobile:build                    # check env → tsc → vite build --mod
 ```
 
 `scripts/mobile/check-env.mjs` stops the build if any of these is wrong:
+- `VITE_APP_ENV` is not `production`;
 - `VITE_APP_MODE` is not `supabase`;
 - the Supabase URL isn't `https`;
 - demo hints are on;

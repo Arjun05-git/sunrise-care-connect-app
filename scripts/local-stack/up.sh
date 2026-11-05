@@ -174,6 +174,7 @@ curl -sf http://127.0.0.1:9999/health >/dev/null || { tail -20 "$STATE/gotrue.lo
 
 cat > .env.local <<ENV
 # written by scripts/local-stack/up.sh – local development keys only
+VITE_APP_ENV=demo
 VITE_APP_MODE=supabase
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=$ANON_KEY

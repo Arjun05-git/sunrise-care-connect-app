@@ -6,6 +6,7 @@ import fs from 'node:fs';
 const file = fs.existsSync('.env.mobile') ? fs.readFileSync('.env.mobile', 'utf8') : '';
 const env = { ...Object.fromEntries(file.split('\n').map((l) => /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/.exec(l)).filter(Boolean).map((m) => [m[1], m[2].replace(/^['"]|['"]$/g, '')])), ...process.env };
 const problems = [];
+if (env.VITE_APP_ENV !== 'production') problems.push('VITE_APP_ENV must be "production"');
 if (env.VITE_APP_MODE !== 'supabase') problems.push('VITE_APP_MODE must be "supabase"');
 if (!/^https:\/\//.test(env.VITE_SUPABASE_URL ?? '')) problems.push('VITE_SUPABASE_URL must be the https URL of the Supabase project');
 if (!env.VITE_SUPABASE_ANON_KEY) problems.push('VITE_SUPABASE_ANON_KEY is required');

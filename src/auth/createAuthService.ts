@@ -1,4 +1,4 @@
-import { config } from '@/lib/config';
+import { config, DEMO_BUILD } from '@/lib/config';
 import { DemoAuthService } from './demoAuth';
 import type { AuthService } from './types';
 
@@ -7,7 +7,8 @@ import type { AuthService } from './types';
  * first use, keeping it out of the main bundle.
  */
 export function createAuthService(): AuthService {
-  if (config.mode !== 'supabase') return new DemoAuthService();
+  // DEMO_BUILD is a compile-time constant: production builds drop DemoAuthService and its credentials.
+  if (DEMO_BUILD && config.mode === 'demo') return new DemoAuthService();
   let loading: Promise<AuthService> | null = null;
   const svc = () =>
     (loading ??= Promise.all([import('./supabaseAuth'), import('@/lib/supabase')]).then(([a, s]) => new a.SupabaseAuthService(s.getSupabase())));

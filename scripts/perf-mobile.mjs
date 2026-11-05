@@ -5,7 +5,7 @@
  * Cold load every run: HTTP cache, service worker and Cache Storage cleared; the sign-in (localStorage)
  * is kept for signed-in pages. Median of N runs per page.
  *
- *   VITE_APP_MODE=supabase npx vite build --outDir /tmp/perf-dist && npx vite preview --outDir /tmp/perf-dist --port 4176
+ *   VITE_APP_ENV=demo VITE_APP_MODE=supabase npx vite build --outDir /tmp/perf-dist && npx vite preview --outDir /tmp/perf-dist --port 4176
  *   node scripts/perf-mobile.mjs http://localhost:4176 [runs=3] [report.json]
  */
 import { chromium } from 'playwright-core';
