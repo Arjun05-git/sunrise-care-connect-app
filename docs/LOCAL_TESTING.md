@@ -137,7 +137,7 @@ Open <http://localhost:5173>.
 | Doctor | `9847100001`, OTP `123456`; signing PIN `1234` |
 | Admin | `admin@sunrise.demo` / `Sunrise@123` (also `finance@` and `coordinator@sunrise.demo`) |
 
-Staff two-factor sign-in is switched off in the seeded data. To try it, set `staff_mfa_required` to `true` in the `app_settings` table (Studio → Table editor).
+Staff two-factor sign-in is optional on this demo database, because `npm run stack:up` declares it a demo environment (`ALTER DATABASE … SET app.environment = 'demo'`). To try it, set `staff_mfa_required` to `true` in the `app_settings` table (Studio → Table editor). A database without that setting is treated as production and always requires the code. If you created your database before this change, run `alter database <name> set app.environment = 'demo';` once (or `npm run stack:up` again).
 
 **Payments** use a built-in *Test payment* window: choose a method, then **Pay ₹…** for success or **Simulate a declined payment** for a failure. No card details are asked for and no money moves.
 

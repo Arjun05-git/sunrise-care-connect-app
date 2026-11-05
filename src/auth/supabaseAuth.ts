@@ -56,13 +56,16 @@ export class SupabaseAuthService implements AuthService {
     await this.sb.auth.signOut();
   }
 
-  /** aal2 still missing: the user has a verified factor, or staff MFA is required (setting missing = required). */
+  /**
+   * aal2 still missing: the user has a verified factor, or the DATABASE says staff MFA is required (always in
+   * production; in an explicitly configured demo environment only when switched on). Anything unclear = required.
+   */
   private async staffNeedsMfa(): Promise<boolean> {
     const { data: aal } = await this.sb.auth.mfa.getAuthenticatorAssuranceLevel();
     if (aal?.currentLevel === 'aal2') return false;
     if (aal?.nextLevel === 'aal2') return true;
-    const { data } = await this.sb.from('app_settings').select('value').eq('key', 'staff_mfa_required').maybeSingle();
-    return data?.value !== false;
+    const { data, error } = await this.sb.rpc('auth_policy');
+    return !!error || (data as { staff_mfa_required?: unknown } | null)?.staff_mfa_required !== false;
   }
 
   private async toSession(user: User, attempt = 0): Promise<Session> {

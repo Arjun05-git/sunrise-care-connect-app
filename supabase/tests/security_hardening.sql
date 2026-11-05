@@ -118,10 +118,12 @@ set local role authenticated;
 select pg_temp.expect_value('mfa', 'after the TOTP code (aal2) the console works', $q$select (admin_dashboard() is not null)::text$q$, 'true');
 reset role;
 delete from app_settings where key = 'staff_mfa_required';
+select set_config('app.environment', 'production', true);   -- this database is a seeded demo database; this check is about production
 select pg_temp.login(:'admin', 'aal1');
 set local role authenticated;
-select pg_temp.expect_error('mfa', 'setting missing (production, no seed) = required', $q$select admin_dashboard()$q$, 'forbidden');
+select pg_temp.expect_error('mfa', 'production without the setting (no seed) = required', $q$select admin_dashboard()$q$, 'forbidden');
 reset role;
+select set_config('app.environment', 'demo', true);
 insert into app_settings (key, value) values ('staff_mfa_required', 'false');
 insert into auth.mfa_factors (id, user_id, status) values (gen_random_uuid(), :'admin', 'verified');
 select pg_temp.login(:'admin', 'aal1');
