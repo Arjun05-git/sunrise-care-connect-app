@@ -13,7 +13,10 @@ major_version = 15
 
 [db.seed]
 enabled = true
-sql_paths = ["./seed.sql"]
+# Reference data only (master tables + safe defaults): it is the one seed that is fit for any environment, including
+# `supabase db push --include-seed` to a hosted project. The demo hospital (known logins) is loaded on purpose, into a
+# database declared as demo - see docs/LOCAL_TESTING.md. supabase/seed/demo.sql refuses to run anywhere else.
+sql_paths = ["./seed/reference.sql"]
 
 [auth]
 site_url = "http://localhost:5173"

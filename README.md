@@ -9,7 +9,7 @@ npm install
 # Real data (Supabase Auth + Postgres + Storage). Without Docker: needs PostgreSQL 15/16 and the binaries in $SB_BIN
 SB_BIN=/opt/sb PGHOST=127.0.0.1 PGPORT=5432 PGUSER=postgres npm run stack:up   # migrates, seeds, writes .env.local
 npm run dev              # http://localhost:5173 (proxies /auth/v1, /rest/v1, /storage/v1)
-# With the Supabase CLI instead: supabase start && supabase db reset, then put its URL + anon key in .env.local (VITE_APP_ENV=demo, VITE_APP_MODE=supabase)
+# With the Supabase CLI instead: supabase start (reference data only), then load the demo hospital as described in docs/LOCAL_TESTING.md B2, and put its URL + anon key in .env.local (VITE_APP_ENV=demo, VITE_APP_MODE=supabase)
 
 # UI shell only, no database:
 cp .env.example .env     # VITE_APP_ENV=demo, VITE_APP_MODE=demo (both are required: a missing value stops the app)
