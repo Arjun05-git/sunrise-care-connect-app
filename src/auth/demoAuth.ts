@@ -1,4 +1,5 @@
 import { AuthError, type AuthService, type AuthUser, type Session } from './types';
+import { INDIAN_MOBILE } from './phone';
 
 /** Demo credentials – shown on the login screen in demo mode. */
 export const DEMO = {
@@ -9,7 +10,8 @@ export const DEMO = {
   password: 'Sunrise@123',
 } as const;
 
-const DIRECTORY: AuthUser[] = [
+// A function, not a module-level array: top-level reads of DEMO.* would keep the credentials in production bundles.
+const directory = (): AuthUser[] => [
   { id: 'u-patient-1', role: 'patient', name: 'Anjali Menon', phone: DEMO.patientPhone, email: null },
   { id: 'u-doctor-1', role: 'doctor', name: 'Dr. Arun Nair', phone: DEMO.doctorPhone, email: null },
   { id: 'u-admin-1', role: 'admin', name: 'Sunrise Admin', phone: null, email: DEMO.adminEmail },
@@ -18,7 +20,6 @@ const DIRECTORY: AuthUser[] = [
 ];
 
 const SESSION_KEY = 'scc-session';
-export const INDIAN_MOBILE = /^\+91[6-9]\d{9}$/;
 
 /** Fixed-window limiter (server side this lives in Postgres / the Auth hook). */
 export function createRateLimiter(max: number, windowMs: number, now: () => number = Date.now) {
@@ -53,7 +54,7 @@ export class DemoAuthService implements AuthService {
   async verifyOtp(phone: string, code: string, intendedRole: 'patient' | 'doctor') {
     if (!this.verifyLimiter(phone)) throw new AuthError('rate_limited');
     if (code !== DEMO.otp) throw new AuthError('invalid_otp');
-    const known = DIRECTORY.find((u) => u.phone === phone);
+    const known = directory().find((u) => u.phone === phone);
     if (intendedRole === 'doctor' && known?.role !== 'doctor') throw new AuthError('not_a_doctor');
     const user: AuthUser = known ?? { id: `u-${phone.slice(-10)}`, role: 'patient', name: '', phone, email: null };
     if (intendedRole === 'patient' && user.role !== 'patient') throw new AuthError('invalid_credentials');
@@ -62,7 +63,7 @@ export class DemoAuthService implements AuthService {
 
   async signInWithPassword(email: string, password: string) {
     if (!this.verifyLimiter(email)) throw new AuthError('rate_limited');
-    const user = DIRECTORY.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+    const user = directory().find((u) => u.email?.toLowerCase() === email.toLowerCase());
     if (!user || password !== DEMO.password) throw new AuthError('invalid_credentials');
     return this.persist(user);
   }

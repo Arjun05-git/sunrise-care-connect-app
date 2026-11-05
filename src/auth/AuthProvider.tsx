@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { AuthService, Session } from './types';
-import { DemoAuthService } from './demoAuth';
+import { createAuthService } from './createAuthService';
 import { disableNativePush } from '@/lib/native';
 
 interface AuthCtx {
@@ -15,7 +15,7 @@ interface AuthCtx {
 const Ctx = createContext<AuthCtx | null>(null);
 
 export function AuthProvider({ children, service }: { children: ReactNode; service?: AuthService }) {
-  const svc = useMemo(() => service ?? new DemoAuthService(), [service]);
+  const svc = useMemo(() => service ?? createAuthService(), [service]);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 

@@ -17,7 +17,7 @@ import { homeFor } from '@/auth/guards';
 import { AuthError, type Session } from '@/auth/types';
 import { DEMO } from '@/auth/demoAuth';
 import { useTheme } from '@/lib/theme';
-import { showDemoHints } from '@/lib/config';
+import { DEMO_BUILD, showDemoHints } from '@/lib/config';
 
 type Tab = 'patient' | 'doctor' | 'staff';
 
@@ -77,7 +77,7 @@ export function LoginPage() {
           </CardContent>
         </Card>
 
-        {showDemoHints && (
+        {DEMO_BUILD && showDemoHints && (
           <div className="mt-4 rounded-lg border border-dashed border-highlight bg-highlight-soft/60 p-4 text-sm">
             <p className="font-semibold text-warning">{t('auth.demoTitle')}</p>
             <ul className="mt-2 space-y-1 text-muted-foreground">
@@ -118,7 +118,7 @@ function PhoneOtpForm({ role, onDone }: { role: 'patient' | 'doctor'; onDone: (s
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [wait, setWait] = useState(0);
-  const form = useForm<PhoneForm>({ resolver: phoneResolver, defaultValues: { phone: showDemoHints ? (role === 'patient' ? DEMO.patientPhone : DEMO.doctorPhone).slice(3) : '' } });
+  const form = useForm<PhoneForm>({ resolver: phoneResolver, defaultValues: { phone: DEMO_BUILD && showDemoHints ? (role === 'patient' ? DEMO.patientPhone : DEMO.doctorPhone).slice(3) : '' } });
 
   useEffect(() => {
     if (wait <= 0) return;
@@ -208,7 +208,7 @@ function StaffForm({ onDone }: { onDone: (s: Session) => void }) {
   const { t } = useTranslation();
   const { service } = useAuth();
   const [err, setErr] = useState<string | null>(null);
-  const form = useForm<StaffForm>({ resolver: staffResolver, defaultValues: showDemoHints ? { email: DEMO.adminEmail, password: DEMO.password } : { email: '', password: '' } });
+  const form = useForm<StaffForm>({ resolver: staffResolver, defaultValues: DEMO_BUILD && showDemoHints ? { email: DEMO.adminEmail, password: DEMO.password } : { email: '', password: '' } });
   const submit = form.handleSubmit(async (v) => {
     setErr(null);
     try {

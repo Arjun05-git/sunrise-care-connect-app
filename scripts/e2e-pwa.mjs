@@ -7,7 +7,7 @@
  *   iPhone Safari shows the "Add to Home Screen" hint · phone widths.
  *
  *   npm run stack:up
- *   VITE_APP_MODE=supabase npx vite build --outDir /tmp/pwa-dist && npx vite preview --outDir /tmp/pwa-dist --port 4175
+ *   VITE_APP_ENV=demo VITE_APP_MODE=supabase npx vite build --outDir /tmp/pwa-dist && npx vite preview --outDir /tmp/pwa-dist --port 4175
  *   DIST=/tmp/pwa-dist node scripts/e2e-pwa.mjs http://localhost:4175
  */
 import { chromium } from 'playwright-core';

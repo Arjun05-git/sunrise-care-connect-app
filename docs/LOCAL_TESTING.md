@@ -101,6 +101,7 @@ Leave this running. It uses the mock payment gateway, mock notifications and fre
 Create **`.env.local`** in the project folder. Delete `.env` from step A if you made it.
 
 ```bash
+VITE_APP_ENV=demo
 VITE_APP_MODE=supabase
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=<the "anon key" from supabase status>

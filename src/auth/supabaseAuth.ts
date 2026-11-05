@@ -1,6 +1,6 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import { AuthError, STAFF_ROLES, type AuthService, type Role, type Session } from './types';
-import { INDIAN_MOBILE } from './demoAuth';
+import { INDIAN_MOBILE } from './phone';
 
 const ROLE_ORDER: Role[] = ['admin', 'finance', 'coordinator', 'doctor', 'patient'];
 
