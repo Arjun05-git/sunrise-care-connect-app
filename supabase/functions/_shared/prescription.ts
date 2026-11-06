@@ -5,6 +5,7 @@
 import { PDFDocument, StandardFonts, degrees, rgb, type PDFFont, type PDFImage, type PDFPage } from 'pdf-lib';
 import qrcode from 'qrcode-generator';
 import { latin } from './receipt.ts';
+import { istDate, istDateTime } from './time.ts';
 
 export interface RxItem { drug_name: string; generic_name: string; strength: string; form: string; dose: string; frequency: string; duration: string; route: string; instructions: string }
 export interface RxData {
@@ -37,9 +38,6 @@ const INK = rgb(0.06, 0.09, 0.16);
 const MUTED = rgb(0.39, 0.45, 0.55);
 const LINE = rgb(0.85, 0.88, 0.92);
 
-const istDate = (iso: string) => new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso));
-const istDateTime = (iso: string) =>
-  new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(iso)) + ' IST';
 const GENDER: Record<string, string> = { female: 'Female', male: 'Male', other: 'Other', undisclosed: '-' };
 
 /** Splits text into lines that fit `width` (words longer than a line are broken). */

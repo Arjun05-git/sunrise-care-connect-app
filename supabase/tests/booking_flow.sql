@@ -198,7 +198,7 @@ select pg_temp.expect('family', 'family now has 4 members', 'select 1 from patie
 select save_patient((select v::uuid from t_vars where k = 'kid'), 'Test Child Renamed', current_date - 3000, 'female', 'child');
 select pg_temp.expect('family', 'edit family member', 'select 1 from patients where full_name = ''Test Child Renamed''', '=1');
 select pg_temp.expect_error('family', 'relation required for a dependent', $q$select save_patient(null, 'No Relation', '2000-01-01', 'male')$q$, 'relation_required');
-select pg_temp.expect_error('family', 'future date of birth rejected', $q$select save_patient(null, 'Future Kid', current_date + 1, 'male', 'child')$q$, 'invalid_dob');
+select pg_temp.expect_error('family', 'future date of birth rejected', $q$select save_patient(null, 'Future Kid', (now() at time zone 'Asia/Kolkata')::date + 1, 'male', 'child')$q$, 'invalid_dob');
 select pg_temp.expect_error('family', 'cannot edit another family''s patient', format($q$select save_patient(%L, 'Hijack', '2000-01-01', 'male')$q$, :'rajan_pt'), 'forbidden');
 select pg_temp.expect_error('family', 'cannot remove yourself', format('select archive_patient(%L)', :'anjali_pt'), 'cannot_archive_self');
 select archive_patient((select v::uuid from t_vars where k = 'kid'));
