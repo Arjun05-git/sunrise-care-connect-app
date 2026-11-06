@@ -819,6 +819,8 @@
       "has_upcoming_appointments": "This person has an upcoming consultation. Cancel it first.",
       "unauthenticated": "Your session has ended. Please sign in again.",
       "not_found": "We couldn't find that booking.",
+      "too_late": "This appointment has already started, so it can't be cancelled here. Please call us.",
+      "not_cancellable": "This booking can no longer be cancelled.",
       "already_paid": "This booking is already paid.",
       "free_booking": "This booking is free – no payment needed.",
       "payment_not_captured": "The payment didn't go through. You were not charged.",
@@ -863,7 +865,20 @@
       "confirmTime": "Confirm new time",
       "movedToast": "Booked for {{when}}",
       "fallbackBodyBoth": "Book a free new time with the same doctor on any day that suits you. If you'd rather have your money back, you can request a refund instead.",
-      "requestRefund": "Request a refund instead ({{amount}})"
+      "requestRefund": "Request a refund instead ({{amount}})",
+      "cancel": "Cancel appointment",
+      "cancelTitle": "Cancel this appointment?",
+      "cancelBody": "{{doctor}} · {{time}}",
+      "cancelChecking": "Checking your refund…",
+      "cancelQuoteError": "We couldn't check the refund amount just now. It will follow the cancellation policy.",
+      "cancelRefund": "You will be refunded {{amount}} ({{percent}}% of the {{paid}} you paid). It goes back to your original payment method.",
+      "cancelNoRefund": "Under the cancellation policy there is no refund this close to the appointment.",
+      "cancelNothingToRefund": "There is nothing to refund for this booking.",
+      "cancelReason": "Reason (optional)",
+      "cancelKeep": "Keep appointment",
+      "cancelConfirm": "Yes, cancel appointment",
+      "cancelled": "Appointment cancelled.",
+      "cancelledRefund": "Appointment cancelled. {{amount}} will be refunded."
     }
   },
   "pay": {
