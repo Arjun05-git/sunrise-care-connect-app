@@ -112,5 +112,7 @@ import_map = "./functions/deno.json"
 import_map = "./functions/deno.json"
 [functions.prescription-pdf]
 import_map = "./functions/deno.json"
+[functions.system-status]
+import_map = "./functions/deno.json"
 [functions.video-token]
 import_map = "./functions/deno.json"

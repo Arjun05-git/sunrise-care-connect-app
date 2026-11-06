@@ -2429,6 +2429,56 @@
       "abdm_no_account": "No ABHA was found for these details."
     }
   },
+  "sys": {
+    "title": "System status",
+    "subtitle": "Which services are simulated and which are real. Only modes are shown, never keys or values.",
+    "env": {
+      "demo": "Demo environment",
+      "production": "Production"
+    },
+    "mode": {
+      "mock": "MOCK",
+      "sandbox": "SANDBOX",
+      "live": "LIVE",
+      "unconfigured": "NOT SET UP"
+    },
+    "hint": {
+      "mock": "Simulated: nothing real is sent or charged",
+      "sandbox": "Test service: no real money or patients",
+      "live": "Real service",
+      "unconfigured": "Missing its settings, so it does not work yet"
+    },
+    "area": {
+      "payments": "Payments",
+      "notifications": "Notifications",
+      "video": "Video",
+      "integrations": "Integrations"
+    },
+    "p": {
+      "payments": "Payment gateway",
+      "whatsapp": "WhatsApp",
+      "sms": "SMS",
+      "push": "Push notifications",
+      "video": "Video calls"
+    },
+    "detail": {
+      "razorpay": "Razorpay",
+      "mock_gateway": "Built-in test gateway",
+      "mock_payments_disabled": "Mock gateway is switched off and no real gateway is set up",
+      "razorpay_keys_missing": "Razorpay keys are missing",
+      "livekit": "LiveKit",
+      "jitsi_public": "Free public Jitsi server (meet.jit.si)",
+      "jitsi_own_domain": "Own Jitsi server"
+    },
+    "unverified": "Adapter not yet tested against the real system",
+    "warn": {
+      "title": "This production environment is not fully live",
+      "mock": "{{name}} is simulated (mock): nothing real is sent or charged",
+      "sandbox": "{{name}} is a test service (sandbox)",
+      "unconfigured": "{{name}} is not set up",
+      "open_cors": "Browser access is open to any website (ALLOWED_ORIGINS is not set)"
+    }
+  },
   "intg": {
     "adminOnly": "Only admins can change integration settings.",
     "subtitle": "Hospital systems, CRM and ABDM. Events are queued and sent with retries.",

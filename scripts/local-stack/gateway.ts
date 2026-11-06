@@ -11,7 +11,7 @@ import { startRealtime } from './realtime.ts';
 
 const PORT = Number(process.env.GATEWAY_PORT ?? 54321);
 const upstream: Record<string, number> = { auth: 9999, rest: 3000, storage: 5000 };
-const FUNCTIONS = ['payments-create-order', 'payments-verify', 'payments-webhook', 'payments-mock-checkout', 'payments-refund', 'payments-receipt', 'video-token', 'video-webhook', 'prescription-pdf', 'prescription-verify', 'doctor-signature', 'notifications-dispatch', 'notifications-webhook', 'admin-users', 'integrations-dispatch', 'abha', 'documents-register', 'auth-sms-hook'];
+const FUNCTIONS = ['payments-create-order', 'payments-verify', 'payments-webhook', 'payments-mock-checkout', 'payments-refund', 'payments-receipt', 'video-token', 'video-webhook', 'prescription-pdf', 'prescription-verify', 'doctor-signature', 'notifications-dispatch', 'notifications-webhook', 'admin-users', 'integrations-dispatch', 'abha', 'documents-register', 'auth-sms-hook', 'system-status'];
 const loaded = new Map<string, (req: Request) => Promise<Response>>();
 
 async function fn(name: string) {
