@@ -176,6 +176,7 @@ insert('app_settings', toRows({
   public_url: 'http://localhost:5173',
   require_doctor_step_up: false,   // so the demo OTP login works without the PIN step
   staff_mfa_required: false,       // honoured only where app.environment = 'demo' (migration 019)
+  recording_enabled: true,         // consultation recording (doctor starts / stops it, both parties consent); off by default in reference
   custom_medicine_mode: 'direct',  // a typed medicine is added as typed: no catalogue match, no acknowledgement (production: unset = checked)
   integrations: (db.app_settings as Record<string, unknown>).integrations,
 }), ['key', 'value'], jsonb, '\non conflict (key) do update set value = excluded.value');

@@ -66,6 +66,11 @@ describe('demo seed – refuses to run outside an explicit demo database', () =>
     expect(seed.demo).toContain(`('integrations', '{"his":true,"leadsquared":true}'::jsonb)`);
   });
 
+  it('switches consultation recording on in the demo, while the reference seed leaves it off', () => {
+    expect(seed.demo).toContain(`('recording_enabled', 'true'::jsonb)`);
+    expect(seed.reference).toContain(`('recording_enabled', 'false'::jsonb)`);
+  });
+
   it('adds a typed medicine directly in the demo (production keeps the checked default: the key is absent from reference)', () => {
     expect(seed.demo).toContain(`('custom_medicine_mode', '"direct"'::jsonb)`);
   });
