@@ -7,7 +7,14 @@ import qrcode from 'qrcode-generator';
 import { latin } from './receipt.ts';
 import { istDate, istDateTime } from './time.ts';
 
-export interface RxItem { drug_name: string; generic_name: string; strength: string; form: string; dose: string; frequency: string; duration: string; route: string; instructions: string }
+export interface RxItem { drug_name: string; generic_name: string; strength: string; form: string; dose: string; frequency: string; duration: string; route: string; instructions: string; custom?: boolean }
+
+/** "Name strength (form)". Strength and form are optional: a medicine added by hand may have neither. */
+export function itemTitle(it: Pick<RxItem, 'drug_name' | 'strength' | 'form'>): string {
+  // brand names often carry the strength already ("Paracetamol 650")
+  const strength = it.strength && !it.drug_name.includes(it.strength.split(' ')[0]!) ? ` ${it.strength}` : '';
+  return `${it.drug_name}${strength}${it.form ? ` (${it.form})` : ''}`;
+}
 export interface RxData {
   status: 'draft' | 'final';
   version: number;
@@ -205,9 +212,7 @@ export async function renderPrescription(d: RxData, opts: { verifyUrl: string | 
     };
     header();
     d.items.forEach((it, i) => {
-      // brand names often carry the strength already ("Paracetamol 650")
-      const strength = it.strength && !it.drug_name.includes(it.strength.split(' ')[0]!) ? ` ${it.strength}` : '';
-      const name = wrap(`${it.drug_name}${strength} (${it.form})`, bold, 9.5, 222);
+      const name = wrap(itemTitle(it), bold, 9.5, 222);
       const extra = wrap([it.generic_name !== it.drug_name ? it.generic_name : '', it.route, it.instructions].filter(Boolean).join('  |  '), italic, 8, 222);
       const dose = wrap(it.dose || '-', font, 9, 76);
       const freq = wrap(it.frequency || '-', font, 9, 86);

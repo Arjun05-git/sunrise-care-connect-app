@@ -20,7 +20,7 @@ describe('reference seed – safe to load into ANY environment', () => {
   });
 
   it('does not switch MFA or doctor step-up off, and sets no local public URL', () => {
-    for (const key of ['staff_mfa_required', 'require_doctor_step_up', 'public_url']) expect(seed.reference, key).not.toContain(`'${key}'`);
+    for (const key of ['staff_mfa_required', 'require_doctor_step_up', 'public_url', 'custom_medicine_mode']) expect(seed.reference, key).not.toContain(`'${key}'`);
   });
 
   it('carries only system-wide note templates; personal ones need their doctor', () => {
@@ -64,6 +64,10 @@ describe('demo seed – refuses to run outside an explicit demo database', () =>
     expect(seed.demo).toContain(`('staff_mfa_required', 'false'::jsonb)`);
     expect(seed.demo).toContain(`('require_doctor_step_up', 'false'::jsonb)`);
     expect(seed.demo).toContain(`('integrations', '{"his":true,"leadsquared":true}'::jsonb)`);
+  });
+
+  it('adds a typed medicine directly in the demo (production keeps the checked default: the key is absent from reference)', () => {
+    expect(seed.demo).toContain(`('custom_medicine_mode', '"direct"'::jsonb)`);
   });
 
   it('overrides settings idempotently on top of the reference seed', () => {

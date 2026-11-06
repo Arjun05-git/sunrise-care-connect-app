@@ -64,7 +64,12 @@ export interface Warning { code: 'allergy' | 'interaction' | 'duplicate'; allerg
 export interface Verdict { drug_id: string; name: string; category: DrugCategory; schedule: string; blocked: boolean; reasons: Reason[]; warnings: Warning[] }
 export type DrugHit = Verdict & { generic_name: string; form: string; strength: string; default_dose: string; default_frequency: string; default_route: string };
 
-export interface RxItem { drug_id: string; drug_name: string; strength: string; form: string; dose: string; frequency: string; duration: string; route: string; instructions: string }
+export interface RxItem {
+  /** null for a custom medicine (one that is not in the catalogue) */
+  drug_id: string | null; drug_name: string; strength: string; form: string; dose: string; frequency: string; duration: string; route: string; instructions: string;
+  /** custom medicines only */
+  is_custom?: boolean; generic_name?: string; custom_acknowledged?: boolean;
+}
 export interface Rx {
   id: string; appointment_id: string; version: number; status: 'draft' | 'final'; parent_prescription_id: string | null; addendum_reason: string | null;
   rx_no: string | null; verification_code: string | null; finalized_at: string | null; updated_at: string; created_at: string;
@@ -83,12 +88,49 @@ export function useRx(appt: string) {
 export const searchDrugs = async (appt: string, q: string, current: string[]) => (await unwrap(sb().rpc('search_rx_drugs', { p_appt: appt, p_q: q, p_current: current }))) as DrugHit[];
 export const checkDrugs = async (appt: string, ids: string[]) => (ids.length ? ((await unwrap(sb().rpc('check_rx_drugs', { p_appt: appt, p_drug_ids: ids }))) as Verdict[]) : []);
 export interface RxFields { diagnoses: Diagnosis[]; advice: string; investigations: string; follow_up_date: string | null }
+
+// ---- medicines that are not in the catalogue. The rule engine cannot judge them, so the server refuses any name that
+// matches a catalogue medicine and the doctor acknowledges each one before signing (see migration 022).
+export interface CustomCheck {
+  ok: boolean;
+  code: null | 'custom_disabled' | 'custom_invalid' | 'use_catalogue_entry';
+  match: null | { drug_id: string; name: string; generic_name: string; category: DrugCategory; schedule: string };
+  warnings: Warning[];
+  mode?: 'checked' | 'direct';
+}
+
+/**
+ * app_settings.custom_medicine_mode. 'direct' (the demo seed): a typed medicine is added as typed, with no catalogue match and no
+ * acknowledgement. Anything else, including a missing setting, is 'checked' (the safe default; also the answer while loading).
+ */
+export function useCustomMedicineMode() {
+  return useQuery({
+    queryKey: ['clinical', 'custom-medicine-mode'],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const rows = (await unwrap(sb().from('app_settings').select('key, value').eq('key', 'custom_medicine_mode'))) as { key: string; value: unknown }[];
+      return (rows[0]?.value === 'direct' ? 'direct' : 'checked') as 'checked' | 'direct';
+    },
+  });
+}
+export const checkCustomMedicine = async (appt: string, name: string, generic = '') =>
+  (await unwrap(sb().rpc('check_custom_medicine', { p_appt: appt, p_name: name, p_generic: generic }))) as CustomCheck;
+
+/** Ids of the catalogue medicines (the only ones the rule check can judge). */
+export const catalogueIds = (items: RxItem[]) => items.flatMap((i) => (i.is_custom || !i.drug_id ? [] : [i.drug_id]));
+export const hasUnacknowledgedCustom = (items: RxItem[]) => items.some((i) => i.is_custom && !i.custom_acknowledged);
+
+/** What save_rx_draft receives. Catalogue lines are unchanged (id + dosing); custom lines carry what the doctor typed. */
+export const toSaveItems = (items: RxItem[]) =>
+  items.map((i) =>
+    i.is_custom
+      ? { custom: true, name: i.drug_name, generic_name: i.generic_name ?? '', strength: i.strength, form: i.form, dose: i.dose, frequency: i.frequency,
+          duration: i.duration, route: i.route, instructions: i.instructions, acknowledged: !!i.custom_acknowledged }
+      : { drug_id: i.drug_id, dose: i.dose, frequency: i.frequency, duration: i.duration, route: i.route, instructions: i.instructions },
+  );
+
 export const saveRxDraft = async (appt: string, items: RxItem[], fields?: RxFields) =>
-  (await unwrap(sb().rpc('save_rx_draft', {
-    p_appt: appt,
-    p_items: items.map(({ drug_id, dose, frequency, duration, route, instructions }) => ({ drug_id, dose, frequency, duration, route, instructions })),
-    p_fields: fields ?? null,
-  }))) as { id: string; version: number; updated_at: string };
+  (await unwrap(sb().rpc('save_rx_draft', { p_appt: appt, p_items: toSaveItems(items), p_fields: fields ?? null }))) as { id: string; version: number; updated_at: string };
 export const startAddendum = async (rx: string, reason: string) => (await unwrap(sb().rpc('start_addendum', { p_rx: rx, p_reason: reason }))) as string;
 export const discardDraft = async (rx: string) => unwrap(sb().rpc('discard_rx_draft', { p_rx: rx }));
 

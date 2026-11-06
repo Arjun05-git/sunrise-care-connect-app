@@ -1,7 +1,7 @@
 // @vitest-environment node
 import jsQR from 'jsqr';
 import { PDFDocument } from 'pdf-lib';
-import { qrMatrix, renderPrescription, wrap, type RxData } from './prescription.ts';
+import { itemTitle, qrMatrix, renderPrescription, wrap, type RxData } from './prescription.ts';
 import { CODE, verifyUrl } from './rx.ts';
 import { pngSize } from '../doctor-signature/handler.ts';
 
@@ -56,6 +56,18 @@ describe('prescription PDF', () => {
     const doc = await PDFDocument.load(await renderPrescription({ ...base, items, status: 'draft', rx_no: null, verification_code: null }, { verifyUrl: null, signature: null }));
     expect(doc.getPageCount()).toBeGreaterThan(1);
     expect(doc.getTitle()).toBe('Prescription (draft)');
+  });
+  it('prints a medicine added by hand (no form, strength or generic) without stray brackets', async () => {
+    const custom = { drug_name: 'Arnica Herbal Gel', generic_name: '', strength: '', form: '', dose: 'Apply thinly', frequency: 'BD', duration: '7 days', route: '', instructions: '', custom: true };
+    const doc = await PDFDocument.load(await renderPrescription({ ...base, items: [base.items[0]!, custom] }, { verifyUrl: null, signature: null }));
+    expect(doc.getPageCount()).toBe(1);
+  });
+  it('itemTitle: catalogue lines read exactly as before, custom lines drop what they do not have', () => {
+    expect(itemTitle({ drug_name: 'Paracetamol 650', strength: '650 mg', form: 'Tablet' })).toBe('Paracetamol 650 (Tablet)');
+    expect(itemTitle({ drug_name: 'Amoxicillin', strength: '500 mg', form: 'Capsule' })).toBe('Amoxicillin 500 mg (Capsule)');
+    expect(itemTitle({ drug_name: 'Arnica Herbal Gel', strength: '', form: '' })).toBe('Arnica Herbal Gel');
+    expect(itemTitle({ drug_name: 'Arnica Herbal Gel', strength: '10 %', form: '' })).toBe('Arnica Herbal Gel 10 %');
+    expect(itemTitle({ drug_name: 'Arnica Herbal Gel', strength: '', form: 'Gel' })).toBe('Arnica Herbal Gel (Gel)');
   });
   it('wraps long text and survives non-Latin input', async () => {
     const { StandardFonts } = await import('pdf-lib');

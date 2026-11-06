@@ -35,11 +35,12 @@ psql -X -d "$DB" -v ON_ERROR_STOP=1 -f supabase/tests/security_hardening.sql
 psql -X -d "$DB" -v ON_ERROR_STOP=1 -f supabase/tests/environment.sql
 psql -X -d "$DB" -v ON_ERROR_STOP=1 -f supabase/tests/authorization.sql
 psql -X -d "$DB" -v ON_ERROR_STOP=1 -f supabase/tests/timezone.sql
+psql -X -d "$DB" -v ON_ERROR_STOP=1 -f supabase/tests/custom_medicine.sql
 
 # Nothing may depend on the database SESSION time zone (hosted Supabase is UTC, this machine is whatever it is):
 # run every suite again under zones behind and ahead of IST. DB_TEST_ZONES="" skips this (about 3x the time).
 for tz in ${DB_TEST_ZONES-UTC America/Los_Angeles Pacific/Kiritimati}; do
-  for t in rls_matrix booking_flow payments_rules doctor_flow video_flow prescription_flow notifications_flow admin_console integrations_flow security_hardening environment authorization timezone; do
+  for t in rls_matrix booking_flow payments_rules doctor_flow video_flow prescription_flow notifications_flow admin_console integrations_flow security_hardening environment authorization timezone custom_medicine; do
     PGTZ=$tz psql -X -d "$DB" -v ON_ERROR_STOP=1 -f "supabase/tests/$t.sql" > /dev/null || { echo "✗ $t fails when the session time zone is $tz"; exit 1; }
   done
   echo "→ all suites pass under session time zone $tz"
