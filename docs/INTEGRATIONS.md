@@ -95,6 +95,7 @@ supabase secrets set HIS_BASE_URL=https://… HIS_API_KEY=… HIS_FACILITY_ID=�
 - Locally, `npm run stack:up` sets `INTEGRATIONS_PROVIDER=mock`. The gateway dispatches every 10 s (`INTEGRATIONS_MS`) and runs the doctor master 20 s after start-up.
 
 ## Admin → Integrations (`/a/integrations`, admin only)
+- **System status card (top of the page):** which services are simulated and which are real, so a mock can never be mistaken for a live service. It comes from the admin-only `system-status` edge function, which reports the environment the *database* declares (`app.environment`) and each provider's mode: **MOCK** (simulated, nothing real is sent or charged), **SANDBOX** (a real service used for testing: Razorpay test keys, the free public Jitsi server), **LIVE**, or **NOT SET UP**. It never shows a key or value. In a **production** environment, any mock, sandbox, missing payment / message channel or open CORS setting appears in a red warning at the top of the card; a demo environment shows none. A live HIS / LeadSquared / ABDM adapter is marked "not yet tested against the real system" until it has run against the real service.
 - **One card per system:**
   - an on/off switch, saved through a reason dialog;
   - counts of sent, queued, failed and skipped events;

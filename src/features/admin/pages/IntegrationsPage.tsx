@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { ErrorState, ListSkeleton } from '@/components/feedback/states';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ReadOnlyNote, ReasonDialog, useAdminError, useHasRole } from '../components';
+import { SystemStatusCard } from '../SystemStatusCard';
 import { retryIntegration, setIntegrations, useIntegrationEvents, useIntegrationStats, type IntegrationSystem } from '@/features/integrations/api';
 
 const SYSTEMS: IntegrationSystem[] = ['his', 'leadsquared', 'abdm'];
@@ -44,6 +45,7 @@ export function IntegrationsPage() {
   return (
     <div className="space-y-4">
       <PageHeader title={t('admin.integrations')} subtitle={t('intg.subtitle')} />
+      <SystemStatusCard />
       {stats.isPending ? <ListSkeleton rows={2} /> : stats.isError || !flags ? <ErrorState onRetry={() => void stats.refetch()} /> : (
         <div className="grid gap-3 md:grid-cols-3" data-ref="integration-cards">
           {SYSTEMS.map((s) => {
