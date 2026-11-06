@@ -1,0 +1,4 @@
+#!/bin/sh
+# Blocks a commit that contains a secret. Enable once per clone:  npm run hooks:install
+# (it points git at this folder; remove with: git config --unset core.hooksPath)
+exec node scripts/scan-secrets.mjs --staged
