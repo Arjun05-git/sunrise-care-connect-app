@@ -93,7 +93,8 @@ curl -sf http://127.0.0.1:5000/status >/dev/null || { tail -30 "$STATE/storage.l
 echo "→ app migrations + seed"
 for f in supabase/migrations/*.sql; do out=$($P -d "$DB" -f "$f" 2>&1) || { echo "$out"; echo "✗ migration failed: $f"; exit 1; }; echo "$out" | { grep -v "NOTICE\|wal_level\|HINT" || true; }; done
 npx tsx scripts/generate-seed.ts > /dev/null
-$P -d "$DB" -f supabase/seed.sql > /dev/null
+$P -d "$DB" -f supabase/seed/reference.sql > /dev/null
+$P -d "$DB" -f supabase/seed/demo.sql > /dev/null   # refuses unless app.environment = 'demo' (declared above)
 $P -d "$DB" -f scripts/local-stack/realtime.sql > /dev/null   # local Realtime emulator feed
 $P -d "$DB" -c "notify pgrst, 'reload schema'"
 

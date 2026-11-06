@@ -79,11 +79,19 @@ The Twilio values are dummies: test numbers never send an SMS, but Supabase need
 With Docker Desktop running:
 
 ```bash
-supabase start        # first run downloads images (several minutes); applies migrations + seed
+supabase start        # first run downloads images (several minutes); applies migrations + the REFERENCE seed (master data only)
 supabase status       # shows API URL, DB URL, Studio URL and the anon key
 ```
 
-If you change the SQL or want a clean database again later: `supabase db reset`.
+That gives you an empty hospital: drugs, ICD-10 codes, templates and default settings, but no people. To load the **demo hospital** (doctors, patients, appointments and the logins below) declare the database as a demo database and load the demo seed on purpose:
+
+```bash
+npm run db:seed:generate    # writes supabase/seed/reference.sql + demo.sql (dates relative to today)
+psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -c "alter database postgres set app.environment = 'demo'"
+psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/seed/demo.sql
+```
+
+`demo.sql` creates accounts with known passwords, so it refuses to run in any database that is not declared as demo. If you change the SQL or want a clean database again later: `supabase db reset` (it loads the reference seed only; run the last two commands again for the demo data).
 
 ### B3. Start the server functions (payments, video, prescriptions, notifications…)
 

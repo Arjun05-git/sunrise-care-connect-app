@@ -74,7 +74,7 @@ Every finding below is **fixed and covered by tests**, except the items listed u
    - Minimum password length 12, with letters and digits; turn on leaked-password protection.
    - Make sure there are **no test phone numbers**.
    - MFA → TOTP enabled.
-2. **Do not run the seed in production**, and leave `app.environment` unset (or anything other than `demo`): the database then treats itself as production and always requires staff MFA, whatever `app_settings` says. Every staff member enrols on first sign-in.
+2. **Load only `supabase/seed/reference.sql` in production** (master data and safe defaults, no people). `supabase/seed/demo.sql` creates accounts with known passwords and refuses to run unless `app.environment = 'demo'`. Leave `app.environment` unset (or anything other than `demo`): the database then treats itself as production and always requires staff MFA, whatever `app_settings` says. Every staff member enrols on first sign-in.
 3. `supabase secrets set ALLOWED_ORIGINS=https://care.sunrisehospitals.in` (and the app origins, e.g. `https://localhost,capacitor://localhost` for the mobile apps).
 4. **Web host headers:**
    ```
