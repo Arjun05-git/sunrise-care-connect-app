@@ -33,6 +33,7 @@ psql -X -d "$DB" -v ON_ERROR_STOP=1 -f supabase/tests/admin_console.sql
 psql -X -d "$DB" -v ON_ERROR_STOP=1 -f supabase/tests/integrations_flow.sql
 psql -X -d "$DB" -v ON_ERROR_STOP=1 -f supabase/tests/security_hardening.sql
 psql -X -d "$DB" -v ON_ERROR_STOP=1 -f supabase/tests/environment.sql
+psql -X -d "$DB" -v ON_ERROR_STOP=1 -f supabase/tests/authorization.sql
 
 # a production-shaped database: migrations + reference seed only, environment NOT set
 PDB=${DB}_prod

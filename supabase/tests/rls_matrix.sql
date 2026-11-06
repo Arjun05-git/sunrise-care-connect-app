@@ -39,8 +39,11 @@ end $$;
 create function pg_temp.expect_updated(persona text, name text, q text, expected int) returns void language plpgsql as $$
 declare c int;
 begin
-  execute q;
-  get diagnostics c = row_count;
+  begin
+    execute q;
+    get diagnostics c = row_count;
+  exception when insufficient_privilege then c := 0;   -- refused at the privilege layer: nothing changed (stronger than RLS filtering)
+  end;
   insert into t_results (persona, check_name, expected, actual, ok) values (persona, name, '=' || expected, c::text, c = expected);
 end $$;
 
@@ -86,12 +89,12 @@ select pg_temp.expect('patient', 'own notifications only', format('select 1 from
 select pg_temp.expect('patient', 'own role row only', 'select 1 from user_roles', '=1');
 select pg_temp.expect('patient', 'catalogue: verified doctors only (9 of 10)', 'select 1 from doctors', '=9');
 select pg_temp.expect('patient', 'cannot read audit log', 'select 1 from audit_logs', '=0');
-select pg_temp.expect('patient', 'cannot read doctor PIN hashes', 'select 1 from doctor_secrets', '=0');
+select pg_temp.expect_error('patient', 'cannot read doctor PIN hashes (no privilege at all)', 'select 1 from doctor_secrets', 'permission denied');
 select pg_temp.expect_error('patient', 'cannot update another patient', format('update patients set address = ''x'' where id = %L', :'foreign_patient'), 'permission denied');
 -- own profile changes go through save_patient only (a direct write could set his_mrn / an unverified ABHA)
 select pg_temp.expect_error('patient', 'own profile: no direct writes (save_patient)', format('update patients set blood_group = ''B+'' where id = %L', :'anjali_pt'), 'permission denied');
-select pg_temp.expect_error('patient', 'cannot insert appointments directly', format($q$insert into appointments (ref_code, patient_id, booked_by_user_id, doctor_id, hospital_id, department_id, slot_id, start_at, end_at, mode, consult_type, fee_amount, status) select 'SC-HACK01', %L, %L, d.id, d.hospital_id, d.department_id, %L, now() + interval '1 day', now() + interval '1 day 15 min', 'video', 'first', 0, 'confirmed' from doctors d limit 1$q$, :'anjali_pt', :'anjali', :'open_slot'), 'row-level security');
-select pg_temp.expect_error('patient', 'cannot grant self admin role', format('insert into user_roles (user_id, role) values (%L, ''admin'')', :'anjali'), 'row-level security');
+select pg_temp.expect_error('patient', 'cannot insert appointments directly', format($q$insert into appointments (ref_code, patient_id, booked_by_user_id, doctor_id, hospital_id, department_id, slot_id, start_at, end_at, mode, consult_type, fee_amount, status) select 'SC-HACK01', %L, %L, d.id, d.hospital_id, d.department_id, %L, now() + interval '1 day', now() + interval '1 day 15 min', 'video', 'first', 0, 'confirmed' from doctors d limit 1$q$, :'anjali_pt', :'anjali', :'open_slot'), 'permission denied');
+select pg_temp.expect_error('patient', 'cannot grant self admin role', format('insert into user_roles (user_id, role) values (%L, ''admin'')', :'anjali'), 'permission denied');
 select pg_temp.expect_error('patient', 'cannot record consent for someone else', format('insert into consents (user_id, consent_type, version, granted) values (%L, ''terms'', ''1.0'', true)', :'rajan'), 'permission denied');
 select pg_temp.expect_updated('patient', 'cannot change fees (rows filtered)', 'update fee_config set amount = 1', 0);
 reset role;

@@ -78,7 +78,7 @@ set local role authenticated;
 select pg_temp.expect_error('availability', 'overlapping weekly hours rejected',
   $q$select save_weekly_hours('[{"weekday":1,"start":"09:00","end":"12:00"},{"weekday":1,"start":"11:00","end":"13:00"}]')$q$, 'overlapping_hours');
 select pg_temp.expect_error('availability', 'direct table writes are closed (RPC keeps slots consistent)',
-  format($q$insert into doctor_availability (doctor_id, kind, weekday, start_time, end_time) values (%L, 'weekly', 1, '06:00', '07:00')$q$, :'A'), 'row-level security');
+  format($q$insert into doctor_availability (doctor_id, kind, weekday, start_time, end_time) values (%L, 'weekly', 1, '06:00', '07:00')$q$, :'A'), 'permission denied');
 select pg_temp.expect_value('availability', 'leave on day D: clash count = seeded bookings that day',
   $q$select add_leave((select v::date from t_vars where k = 'D'), (select v::date from t_vars where k = 'D'), null, null, 'Conference')::text$q$, (select count(*) from appointments where doctor_id = :'A' and status = 'confirmed' and (start_at at time zone 'Asia/Kolkata')::date = (select v::date from t_vars where k = 'D'))::text);
 reset role;

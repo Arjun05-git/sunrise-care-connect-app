@@ -111,7 +111,7 @@ select pg_temp.expect_error('logs', 'only the doctor ends the consultation', $q$
 select log_call_event(pg_temp.v('soon'), 'quality', '{"worst":"poor","samples":6,"poor":2,"good":4,"notes":"patient says chest pain"}');
 select log_call_event(pg_temp.v('soon'), 'reconnecting', '{"reason":"network"}');
 select log_call_event(pg_temp.v('soon'), 'failure', '{"reason":"ice_failed","attempts":3}');
-select pg_temp.expect_error('logs', 'direct inserts into call_logs are closed', $q$insert into call_logs (appointment_id, provider, room_name, event, actor_user_id) values (pg_temp.v('soon'), 'x', 'x', 'join', auth.uid())$q$, 'row-level security');
+select pg_temp.expect_error('logs', 'direct inserts into call_logs are closed', $q$insert into call_logs (appointment_id, provider, room_name, event, actor_user_id) values (pg_temp.v('soon'), 'x', 'x', 'join', auth.uid())$q$, 'permission denied');
 reset role;
 select pg_temp.expect_value('logs', 'detail keeps whitelisted keys only (no free text)', $q$select (detail::jsonb ? 'notes')::text || '/' || (detail::jsonb ->> 'worst') from call_logs where appointment_id = pg_temp.v('soon') and event = 'quality'$q$, 'false/poor');
 select record_video_webhook((select video_room from appointments where id = pg_temp.v('soon')), 'participant_joined', 'doctor-abc', '{}');
@@ -128,7 +128,7 @@ select pg_temp.expect_value('summary', 'recording reported off', $q$select call_
 -- ================================================================ CHAT
 select pg_temp.login(:'rajan');
 set local role authenticated;
-select pg_temp.expect_error('chat', 'direct chat inserts are closed (role could be forged)', $q$insert into chat_messages (appointment_id, sender_user_id, sender_role, body) values (pg_temp.v('soon'), auth.uid(), 'doctor', 'I am the doctor')$q$, 'row-level security');
+select pg_temp.expect_error('chat', 'direct chat inserts are closed (role could be forged)', $q$insert into chat_messages (appointment_id, sender_user_id, sender_role, body) values (pg_temp.v('soon'), auth.uid(), 'doctor', 'I am the doctor')$q$, 'permission denied');
 select pg_temp.expect_value('chat', 'patient message is stored with role patient', $q$select (send_chat_message(pg_temp.v('soon'), 'Can you hear me?')).sender_role$q$, 'patient');
 select pg_temp.expect_error('chat', 'chat is closed before the join window', $q$select send_chat_message(pg_temp.v('later'), 'hello?')$q$, 'chat_closed');
 reset role;   -- registered by documents-register (service role) after its byte check
