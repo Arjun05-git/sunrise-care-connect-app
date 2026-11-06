@@ -13,3 +13,12 @@ ios/App/App/GoogleService-Info.plist
 a11y-report.json
 perf-report*.json
 supabase/functions/.env
+# Secrets and local tool state stay out of the repo (docs/SECURITY.md, npm run scan:secrets)
+.env.*.local
+supabase/.temp/
+supabase/.branches/
+*.pem
+*.key
+*.p12
+*.pfx
+*service-account*.json

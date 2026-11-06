@@ -19,7 +19,7 @@ PGHOST=${PGHOST:-127.0.0.1}; PGPORT=${PGPORT:-5432}; PGUSER=${PGUSER:-postgres}
 export PGHOST PGPORT PGUSER
 STATE=.local-stack; mkdir -p "$STATE/storage"
 # Well-known Supabase local-dev secret. NEVER use outside local development.
-JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long
+JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long  # secret-scan:allow Supabase's published local-dev default
 eval "$(node scripts/local-stack/keys.mjs "$JWT_SECRET")"
 DB_URL="postgres://$PGUSER@$PGHOST:$PGPORT/$DB"
 P="psql -X -q -v ON_ERROR_STOP=1"

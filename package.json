@@ -34,6 +34,8 @@
     "e2e:security": "node scripts/e2e-security.mjs",
     "e2e:journeys": "node scripts/e2e-journeys.mjs",
     "check:bundle": "node scripts/check-bundle.mjs",
+    "scan:secrets": "node scripts/scan-secrets.mjs",
+    "hooks:install": "git config core.hooksPath scripts/git-hooks",
     "a11y": "node scripts/a11y.mjs",
     "perf": "node scripts/perf-mobile.mjs"
   },

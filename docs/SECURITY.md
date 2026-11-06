@@ -67,6 +67,26 @@ Every finding below is **fixed and covered by tests**, except the items listed u
 | **Screenshots of clinical screens** (Android `FLAG_SECURE`) | This would also stop patients screenshotting their own prescription. **Sunrise to decide.** | One line in `MainActivity` if wanted. |
 | **Malware scanning** of uploads | The type and PDF-active-content checks are a filter, not an antivirus. Compressed object streams can hide names. | Add a scanner (e.g. ClamAV) behind `documents-register` if Sunrise's policy requires it. |
 
+## Secrets
+
+What is public by design, what is secret, and where each lives:
+
+| Value | Secret? | Where it lives |
+|---|---|---|
+| Supabase anon / publishable key (`VITE_SUPABASE_ANON_KEY`) | **Public by design** (RLS protects the data) | Built into the app |
+| VAPID public key (`VITE_VAPID_PUBLIC_KEY`), LiveKit URL | Public | Built into the app / function settings |
+| Supabase service-role (secret) key | **Secret**: bypasses RLS | Injected into edge functions by Supabase. Never in the repo, never in a `VITE_` variable |
+| Send SMS hook secret, Razorpay key secret and webhook secret, MSG91 key and webhook token, WhatsApp token and app secret, VAPID private key, FCM service account, LiveKit API secret | **Secret** | `supabase secrets set …` on the hosted project; locally only in the git-ignored `supabase/functions/.env` |
+| `MOCK_*` values, demo logins (`Sunrise@123`, OTP `123456`) | Known test values | Examples and the demo seed (which refuses to run outside a demo database) |
+| `JWT_SECRET` in `scripts/local-stack/up.sh` | Public: Supabase's published local-dev default | Local stack only; marked `secret-scan:allow` |
+
+Rules:
+1. **Nothing secret in a `VITE_` variable**: everything with that prefix is compiled into the app and is public. `npm run mobile:build` (`check-env.mjs`), the secret scanner and `npm run check:bundle` all refuse it.
+2. **Never commit a secret.** `.gitignore` covers local env files, `supabase/.temp/`, key material (`*.pem`, `*.key`, `*.p12`, `*.pfx`), service-account JSON and the Firebase / signing files.
+3. **Scan.** `npm run scan:secrets` checks the tracked files, `-- --staged` what is about to be committed, `-- --history` every line ever added, `-- --dir dist` a build. `npm run hooks:install` (once per clone) makes git run the staged scan before every commit. `npm run check:bundle` builds for production and fails on demo data or any secret token in the output. Accepted false positives go in `.secret-scan-allow` (with a reason) or carry `secret-scan:allow` on the line.
+4. **If a secret leaks, rotate it first**, then clean up: revoke or regenerate it at the provider (Supabase key, Razorpay, MSG91, WhatsApp, FCM, LiveKit), update `supabase secrets`, then remove it from the code. Rewriting git history is secondary: a pushed secret must be treated as public.
+5. **Local `.env` files with real cloud credentials** (for example a LiveKit Cloud project) belong only to throw-away test projects. Do not paste them into chats, tickets or screenshots, and rotate them if the machine, a backup or a screen share was exposed.
+
 ## Production checklist
 
 1. **Auth (dashboard):**
