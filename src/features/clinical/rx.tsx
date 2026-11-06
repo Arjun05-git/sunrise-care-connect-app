@@ -8,15 +8,17 @@ import { AlertTriangle, Ban, CheckCircle2, Download, Eye, FilePlus2, Loader2, Lo
 import { formatDateTime } from '@/domain/time';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import {
-  checkDrugs, clk, discardDraft, downloadRxPdf, finalizeRx, rxPdfFile, saveRxDraft, searchDrugs, startAddendum, useNotes, useRx, useSigningStatus,
+  catalogueIds, checkDrugs, clk, discardDraft, useCustomMedicineMode, downloadRxPdf, finalizeRx, hasUnacknowledgedCustom, rxPdfFile, saveRxDraft, searchDrugs, startAddendum, useNotes, useRx, useSigningStatus,
   type DrugCategory, type DrugHit, type Reason, type Rx, type RxFields, type RxItem, type Verdict, type Warning,
 } from './api';
+import { CustomMedicineDialog } from './CustomMedicine';
 import { DiagnosisPicker, diagLabel, useDebounced } from './notes';
 
 // ---------------------------------------------------------------- rule texts (the reason the server enforces)
@@ -99,7 +101,10 @@ function DraftEditor({ appointmentId, draft, compact }: { appointmentId: string;
   const [state, setState] = useState<'idle' | 'dirty' | 'saving' | 'saved' | 'error'>('idle');
   const [signOpen, setSignOpen] = useState(false);
   const [busy, setBusy] = useState<null | 'preview' | 'discard'>(null);
-  const ids = useMemo(() => items.map((i) => i.drug_id), [items]);
+  const [customOpen, setCustomOpen] = useState(false);
+  const customMode = useCustomMedicineMode();
+  const [seed, setSeed] = useState<{ term: string; n: number } | null>(null);
+  const ids = useMemo(() => catalogueIds(items), [items]);
   const verdicts = useQuery({ queryKey: ['clinical', 'check', appointmentId, ids.join(',')], queryFn: () => checkDrugs(appointmentId, ids), placeholderData: keepPreviousData });
   const latest = useRef({ items, fields });
   latest.current = { items, fields };
@@ -140,8 +145,15 @@ function DraftEditor({ appointmentId, draft, compact }: { appointmentId: string;
       dose: h.default_dose === '—' ? '' : h.default_dose, frequency: h.default_frequency === '—' ? '' : h.default_frequency, duration: '', route: h.default_route, instructions: '' }]);
     touch();
   };
+  // a medicine that is not in the catalogue: the dialog has already had it checked by the server and acknowledged by the doctor
+  const addCustom = (item: RxItem) => {
+    if (items.length >= 20) return void toast.error(t('clinical.rx.max'));
+    setItems((xs) => [...xs, { ...item, key: crypto.randomUUID() }]);
+    touch();
+  };
   const byDrug = new Map<string, Verdict>((verdicts.data ?? []).map((v) => [v.drug_id, v]));
-  const blocked = items.some((i) => byDrug.get(i.drug_id)?.blocked);
+  const blocked = items.some((i) => !!i.drug_id && byDrug.get(i.drug_id)?.blocked);
+  const hasUnack = hasUnacknowledgedCustom(items);
 
   const dx = isAddendum ? fields.diagnoses : notes.data?.diagnoses ?? [];
   const preview = async () => {
@@ -185,14 +197,14 @@ function DraftEditor({ appointmentId, draft, compact }: { appointmentId: string;
       </div>
       {isAddendum && <p className="rounded-lg bg-highlight-soft/60 p-2 text-sm">{t('clinical.rx.addendumReason', { reason: draft!.addendum_reason })}</p>}
 
-      <DrugSearch appointmentId={appointmentId} current={ids} onAdd={add} />
+      <DrugSearch appointmentId={appointmentId} current={ids} onAdd={add} seed={seed} onCustom={() => setCustomOpen(true)} />
 
       {items.length === 0 ? (
         <p className="rounded-xl border border-dashed p-4 text-center text-sm text-muted-foreground"><Pill className="mx-auto mb-1 h-5 w-5" aria-hidden />{t('clinical.rx.empty')}</p>
       ) : (
         <ol className="space-y-2">
           {items.map((it, n) => {
-            const v = byDrug.get(it.drug_id);
+            const v = it.drug_id ? byDrug.get(it.drug_id) : undefined;
             return (
               <li key={it.key} className={cn('rounded-xl border p-3', v?.blocked && 'border-destructive bg-destructive-soft/40')} data-ref="rx-item">
                 <div className="flex items-start gap-2">
@@ -200,6 +212,15 @@ function DraftEditor({ appointmentId, draft, compact }: { appointmentId: string;
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold">{it.drug_name} <span className="font-normal text-muted-foreground">{it.strength} · {it.form}</span></p>
                     {v && <div className="mt-1 flex flex-wrap gap-1"><CategoryBadge category={v.category} /></div>}
+                    {it.is_custom && (
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1" data-ref="rx-custom">
+                        <Badge variant="warning" title={t('clinical.rx.custom.badgeHint')}>{t('clinical.rx.custom.badge')}</Badge>
+                        {it.generic_name && <span className="text-xs text-muted-foreground">{it.generic_name}</span>}
+                        {it.custom_acknowledged
+                          ? <span className="text-xs text-muted-foreground">{t('clinical.rx.custom.checkedByYou')}</span>
+                          : <label className="flex items-center gap-1.5 text-xs font-medium text-destructive"><Checkbox checked={false} onCheckedChange={(c) => c === true && update(it.key, { custom_acknowledged: true })} />{t('clinical.rx.custom.ack')}</label>}
+                      </div>
+                    )}
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => { setItems((xs) => xs.filter((x) => x.key !== it.key)); touch(); }} aria-label={t('clinical.rx.remove', { name: it.drug_name })}><X className="h-4 w-4" /></Button>
                 </div>
@@ -236,11 +257,13 @@ function DraftEditor({ appointmentId, draft, compact }: { appointmentId: string;
       )}
 
       <div className="flex flex-wrap gap-2">
-        <Button onClick={() => void save().then((ok) => ok && setSignOpen(true))} disabled={blocked || (items.length === 0 && !draft)} data-ref="rx-sign"><PenLine aria-hidden />{t('clinical.rx.signFinalise')}</Button>
+        <Button onClick={() => void save().then((ok) => ok && setSignOpen(true))} disabled={blocked || hasUnack || (items.length === 0 && !draft)} data-ref="rx-sign"><PenLine aria-hidden />{t('clinical.rx.signFinalise')}</Button>
         <Button variant="outline" loading={busy === 'preview'} onClick={() => void preview()}><Eye aria-hidden />{t('clinical.rx.preview')}</Button>
         {isAddendum && <Button variant="ghost" className="text-destructive" loading={busy === 'discard'} onClick={() => void discard()}><Trash2 aria-hidden />{t('clinical.rx.discard')}</Button>}
       </div>
       {blocked && <p className="text-sm text-destructive">{t('clinical.rx.removeBlocked')}</p>}
+      {hasUnack && <p className="text-sm text-destructive">{t('clinical.rx.custom.needAck')}</p>}
+      <CustomMedicineDialog appointmentId={appointmentId} open={customOpen} direct={customMode.data === 'direct'} onOpenChange={setCustomOpen} onAdd={addCustom} onUseCatalogue={(term) => setSeed({ term, n: Date.now() })} />
       <SignDialog open={signOpen} onOpenChange={setSignOpen} appointmentId={appointmentId} draftId={draft?.id ?? null} diagnosisOk={dx.length > 0} />
     </div>
   );
@@ -255,9 +278,10 @@ function Small({ label, value, onChange, max, list, placeholder, className }: { 
   );
 }
 
-function DrugSearch({ appointmentId, current, onAdd }: { appointmentId: string; current: string[]; onAdd: (h: DrugHit) => void }) {
+function DrugSearch({ appointmentId, current, onAdd, seed, onCustom }: { appointmentId: string; current: string[]; onAdd: (h: DrugHit) => void; seed: { term: string; n: number } | null; onCustom: () => void }) {
   const { t } = useTranslation();
   const [q, setQ] = useState('');
+  useEffect(() => { if (seed) setQ(seed.term); }, [seed]);
   const dq = useDebounced(q.trim(), 250);
   const res = useQuery({ queryKey: ['clinical', 'drugs', appointmentId, dq, current.join(',')], enabled: dq.length >= 2, queryFn: () => searchDrugs(appointmentId, dq, current), placeholderData: keepPreviousData });
   return (
@@ -289,6 +313,7 @@ function DrugSearch({ appointmentId, current, onAdd }: { appointmentId: string; 
           ))}
         </ul>
       )}
+      <Button type="button" variant="link" size="sm" className="h-auto min-h-0 px-0 py-1" onClick={onCustom} data-ref="add-custom">{t('clinical.rx.custom.link')}</Button>
     </div>
   );
 }

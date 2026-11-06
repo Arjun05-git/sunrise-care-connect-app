@@ -63,6 +63,34 @@ The reason the doctor sees is therefore the reason the server enforces.
   - PPI + clopidogrel.
 - **Duplicates**: the same medicine twice.
 
+### Medicines that are not in the list
+A doctor can add a medicine the catalogue does not have (**Add one that is not in the list**, under the search box).
+
+**Two modes** (`app_settings.custom_medicine_mode`):
+- **`direct` (the demo; the demo seed sets it):** the typed medicine is added exactly as typed: no catalogue check, no acknowledgement tick. What makes it work is the same in both modes: it **saves** with the prescription, it is **printed** on the signed PDF (the PDF payload left-joins the catalogue, otherwise it would silently vanish), and it **survives an addendum**. The name is still sanity-checked and `allow_custom_medicines = false` still switches it off.
+- **`checked` (the default, also when the setting is missing; what production gets from the reference seed):** the safeguards below.
+
+In `checked` mode the rule
+engine (List O / A / B / Prohibited, schedule, interactions) cannot judge a medicine it does not know, so this is built to be safe:
+- **The server refuses any name that matches a catalogue medicine** (`check_custom_medicine`, and again on save and on signing).
+  Matching is by ingredient word, tolerant of spelling slips, and ignores dose-form words ("syrup", "tablet", "vitamin"): `Codeine linctus`
+  is refused and points to *Codeine Cough Syrup* (prohibited), `Amoxycillin 500mg` points to *Amoxicillin*. Otherwise a restricted drug
+  could be retyped as "custom" to get around the rules. The dialog offers **Search for <catalogue entry>** instead.
+- **The doctor acknowledges each one** ("I have checked this medicine myself") after being told it is not rule-checked. An
+  unacknowledged line blocks signing (`custom_not_acknowledged`). At signing the name is checked against the catalogue again, in case
+  the catalogue has since gained that medicine.
+- **Allergies are still checked by name** (a warning, never a block, like catalogue medicines). Interactions and the List rules are not,
+  and the line is badged *Not in list · not rule-checked*.
+- **It is printed** on the prescription like any other line (the PDF payload left-joins the catalogue), copied into addenda with its
+  acknowledgement, and flagged in the data (`prescription_items.is_custom`, `drug_id` null; a check constraint keeps the two kinds apart).
+- **Limits:** at most 10 per prescription; name 2 to 80 characters, no control characters or `< > { } \`.
+- **Switch:** `app_settings.allow_custom_medicines = false` turns the feature off (check and save then answer `custom_disabled`; a missing
+  setting means allowed). Catalogue medicines are never affected.
+- **Review:** `admin_custom_medicines(days)` (admin, MFA) lists the custom medicines used on signed prescriptions: name, strength, form,
+  how many times, by how many doctors, last used. No patient data. A frequently used one is a candidate for the catalogue (Admin → Masters)
+  with a proper List category.
+- The HIS prescription event carries `drug_code` null for a custom line (the name, strength and form are sent).
+
 ### Sign, lock and number
 `finalize_prescription(rx, pin)` checks, in order:
 1. The consultation has happened (status in progress or completed).
