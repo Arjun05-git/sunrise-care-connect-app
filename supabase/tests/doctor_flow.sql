@@ -218,7 +218,7 @@ select pg_temp.expect_value('auto-refund', 'run_scheduled_jobs reports each job'
 
 -- ================================================================ OUTCOMES (consults in 2020: started long ago)
 insert into slots (doctor_id, start_at, end_at, status) values (:'A', '2020-03-02 10:00+05:30', '2020-03-02 10:15+05:30', 'booked'), (:'A', '2020-03-02 10:15+05:30', '2020-03-02 10:30+05:30', 'booked'), (:'A', '2020-03-02 10:30+05:30', '2020-03-02 10:45+05:30', 'booked');
-insert into t_vars select 'o' || rn, pg_temp.book(id)::text from (select id, row_number() over (order by start_at) rn from slots where doctor_id = :'A' and start_at between '2020-03-02' and '2020-03-03') x;
+insert into t_vars select 'o' || rn, pg_temp.book(id)::text from (select id, row_number() over (order by start_at) rn from slots where doctor_id = :'A' and start_at between '2020-03-02 00:00+05:30' and '2020-03-03 00:00+05:30') x;  -- explicit IST bounds: a bare date means midnight in the SESSION zone
 select pg_temp.login(:'arun');
 set local role authenticated;
 select pg_temp.expect_error('outcome', 'too early before the join window', $q$select record_outcome(pg_temp.v('n3'), 'completed')$q$, 'too_early');

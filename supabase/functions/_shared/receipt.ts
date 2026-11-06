@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { istDateTime as IST } from './time.ts';
 
 export interface ReceiptData {
   receipt_no: string; ref_code: string; amount: number; currency: string; method: string | null; provider: string;
@@ -8,8 +9,6 @@ export interface ReceiptData {
   refunds: { amount: number; status: string; at: string }[];
 }
 
-const IST = (iso: string) =>
-  new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(iso)) + ' IST';
 const inr = (n: number) => 'Rs. ' + new Intl.NumberFormat('en-IN').format(n);
 /** Standard PDF fonts are Latin-1 only: typographic punctuation is mapped to ASCII; anything else (e.g. Malayalam) becomes '?'. */
 const PUNCT: Record<string, string> = { '\u2013': '-', '\u2014': '-', '\u2018': "'", '\u2019': "'", '\u201C': '"', '\u201D': '"', '\u2026': '...', '\u20B9': 'Rs.', '\u00A0': ' ' };

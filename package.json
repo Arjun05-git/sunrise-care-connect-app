@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit && tsc -p supabase/functions/tsconfig.json",
     "test": "vitest run",
+    "test:tz": "node scripts/test-timezones.mjs",
     "i18n:check": "node scripts/i18n-check.mjs",
     "e2e": "node scripts/e2e-smoke.mjs",
     "db:seed:generate": "tsx scripts/generate-seed.ts",
