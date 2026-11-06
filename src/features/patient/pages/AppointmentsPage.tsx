@@ -18,7 +18,8 @@ import { useRealtime } from '@/lib/realtime';
 import { rpcErrorCode } from '@/lib/supabase';
 import { downloadReceipt } from '@/services/payments';
 import { JoinLink } from '@/features/consult/JoinLink';
-import { myApptsKey, needsFallbackChoice, pendingProposal, qk, resolveDoctorCancellation, respondReschedule, useMyAppointments, useSettings, type MyAppointment } from '../api';
+import { CancelAppointment } from '../components/CancelAppointment';
+import { canPatientCancel, myApptsKey, needsFallbackChoice, pendingProposal, qk, resolveDoctorCancellation, respondReschedule, useMyAppointments, useSettings, type MyAppointment } from '../api';
 import { PersonAvatar, rupees, useRpcErrorText } from '../components/common';
 
 /** Patient bookings, with live cards for anything that needs the patient's answer. */
@@ -90,6 +91,7 @@ function ApptCard({ a }: { a: MyAppointment }) {
           </div>
           <p className="mt-1 text-xs text-muted-foreground">{t('patient.appts.ref', { ref: a.ref_code })}</p>
           <div className="mt-2"><JoinLink appt={a} who="p" joinMin={settings.data?.join_window_minutes} /></div>
+          {canPatientCancel(a) && <div className="mt-2"><CancelAppointment a={a} /></div>}
         </div>
         {paid && (
           <Button variant="ghost" size="icon" aria-label={t('pay.receipt', { no: paid.receipt_no })} onClick={() => void downloadReceipt(paid.id).catch(() => toast.error(t('common.error')))}><Download className="h-4 w-4" /></Button>

@@ -422,6 +422,31 @@ export const needsFallbackChoice = (a: MyAppointment) =>
   a.status === 'cancelled' && DOCTOR_SIDE.includes(a.outcome ?? '') && !a.rescheduled_to_id && !a.refunds.some((r) => r.status !== 'failed');
 export const pendingProposal = (a: MyAppointment) => (a.status === 'confirmed' ? a.reschedule_requests.find((r) => r.status === 'pending') : undefined);
 
+// ---- patient cancellation. The server decides (cancel_appointment: confirmed, not started); this mirrors it so the
+// button only appears where it can work, and the dialog can show the refund first.
+/** Refund preview from refund_quote (the database checks that the caller can see the booking). */
+export interface CancelQuote { rule: string; percent: number; amount: number; paid: number; refundable: number; hours_before: number }
+
+export const canPatientCancel = (a: MyAppointment, now = Date.now()) =>
+  a.status === 'confirmed' && new Date(a.start_at).getTime() > now && !pendingProposal(a); // answer the doctor's proposal first
+
+export type RefundCase = 'refund' | 'no_refund' | 'nothing_to_refund';
+export const refundCase = (q: CancelQuote): RefundCase => (q.paid <= 0 || q.refundable <= 0 ? 'nothing_to_refund' : q.amount > 0 ? 'refund' : 'no_refund');
+
+export function useCancelQuote(apptId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['cancel-quote', apptId],
+    enabled,
+    staleTime: 0,
+    gcTime: 0, // the refund tier depends on the time left: always ask again
+    queryFn: async () => (await unwrap(sb().rpc('refund_quote', { p_appt: apptId, p_cancelled_by: 'patient' }))) as CancelQuote,
+  });
+}
+
+/** Cancels through the server, which also sends the refund to the payment gateway. */
+export const cancelAppointment = (apptId: string, reason: string) =>
+  callFunction<{ refund_id: string | null; amount?: number; cancelled_by: string }>('payments-refund', { appointment_id: apptId, cancel: true, reason });
+
 async function processRefundIfAny(res: { refund_id?: string | null }) {
   // the refund is queued in the DB; ask the server to send it to the gateway now (the sweep retries otherwise)
   if (res.refund_id) await callFunction('payments-refund', { refund_id: res.refund_id }).catch(() => undefined);
