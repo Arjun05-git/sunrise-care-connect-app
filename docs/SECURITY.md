@@ -34,6 +34,7 @@ Every finding below is **fixed and covered by tests**, except the items listed u
 
 ### Checked and found sound (no change)
 
+- **Two locks on RPC-owned tables (phase 4):** the write *policies* were removed by earlier migrations, and migration 020 also removes the write *privileges*, so a future permissive policy cannot silently reopen them (`supabase/tests/authorization.sql`). New tables are created closed: a migration must `grant` what clients need.
 - **Signed URLs:** 60 s, minted as the user, so storage RLS applies. The `prescriptions` and `signatures` buckets are service-only, and prescription PDFs are streamed by a function after an RLS read.
 - **Documents, prescriptions, receipts (no IDOR):**
   - `prescription-pdf` checks the row as the caller;

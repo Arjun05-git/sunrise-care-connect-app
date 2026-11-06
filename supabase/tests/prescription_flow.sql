@@ -152,8 +152,8 @@ select pg_temp.expect_error('draft', 'blocked drug refused by the server', $q$se
 insert into t_vars select 'rx1', save_rx_draft(pg_temp.v('afirst'), '[{"drug_id":"drug-002","dose":"1 tablet","frequency":"TDS","duration":"5 days"},{"drug_id":"drug-004","dose":"1 sachet"}]') ->> 'id';
 select pg_temp.expect_value('draft', 'allowed drugs saved with names / strengths from the master', $q$select string_agg(drug_name || ' ' || strength || ' ' || route, ' | ' order by position) from prescription_items where prescription_id = pg_temp.v('rx1')$q$, 'Paracetamol 650 650 mg Oral | ORS Sachet 21 g Oral');
 select pg_temp.expect_value('draft', 'saving again replaces items, same draft', $q$select (save_rx_draft(pg_temp.v('afirst'), '[{"drug_id":"drug-002","dose":"1 tablet","frequency":"TDS","duration":"5 days","instructions":"After food"}]') ->> 'id') = pg_temp.s('rx1')$q$, 'true');
-select pg_temp.expect_error('draft', 'no direct inserts (rules are checked in the RPC)', $q$insert into prescriptions (appointment_id, doctor_id, patient_id) values (pg_temp.v('vfirst'), pg_temp.v('doc'), pg_temp.v('pt'))$q$, 'row-level security');
-select pg_temp.expect_error('draft', 'no direct item writes', $q$insert into prescription_items (prescription_id, drug_id, drug_name) values (pg_temp.v('rx1'), 'drug-101', 'Morphine')$q$, 'row-level security');
+select pg_temp.expect_error('draft', 'no direct inserts (rules are checked in the RPC)', $q$insert into prescriptions (appointment_id, doctor_id, patient_id) values (pg_temp.v('vfirst'), pg_temp.v('doc'), pg_temp.v('pt'))$q$, 'permission denied');
+select pg_temp.expect_error('draft', 'no direct item writes', $q$insert into prescription_items (prescription_id, drug_id, drug_name) values (pg_temp.v('rx1'), 'drug-101', 'Morphine')$q$, 'permission denied');
 reset role;
 select pg_temp.login(:'rajan');
 set local role authenticated;
@@ -187,7 +187,7 @@ select pg_temp.expect_value('final', 'finalised with a unique Rx number and a 10
 select pg_temp.expect_value('final', 'diagnosis / advice / follow-up snapshot from the notes; notes locked',
   $q$select (p.diagnoses -> 0 ->> 'code') || '/' || p.advice || '/' || p.follow_up_date || '/' || c.status from prescriptions p join consultations c on c.appointment_id = p.appointment_id where p.id = pg_temp.v('rx1')$q$, 'J06.9/Fluids, rest/2030-01-05/final');
 select pg_temp.expect_value('final', 'doctor, patient and hospital snapshot', $q$select (doctor_snapshot ->> 'registration_no') || '/' || (patient_snapshot ->> 'name') || '/' || (hospital_snapshot ->> 'name' like 'Sunrise%') from prescriptions where id = pg_temp.v('rx1')$q$, 'TCMC-99999/Meenakshi Rx Test/true');
-select pg_temp.expect_value('final', 'final prescription is locked (no update path for the doctor)', $q$with u as (update prescriptions set advice = 'changed' where id = pg_temp.v('rx1') returning 1) select count(*)::text from u$q$, '0');
+select pg_temp.expect_error('final', 'final prescription is locked (the doctor has no update path at all)', $q$update prescriptions set advice = 'changed' where id = pg_temp.v('rx1')$q$, 'permission denied');
 reset role;
 select pg_temp.expect_error('final', '… even for the database owner (trigger)', $q$update prescriptions set advice = 'changed' where id = pg_temp.v('rx1')$q$, 'prescription_immutable');
 select pg_temp.expect_error('final', '… items too', $q$insert into prescription_items (prescription_id, drug_id, drug_name) values (pg_temp.v('rx1'), 'drug-002', 'x')$q$, 'prescription_immutable');

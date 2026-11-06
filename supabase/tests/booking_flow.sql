@@ -85,7 +85,7 @@ select pg_temp.expect_error('guard', 'patient cannot generate slots', format('se
 select pg_temp.expect_error('guard', 'patient cannot insert an appointment directly',
   format($q$insert into appointments (ref_code, patient_id, booked_by_user_id, doctor_id, hospital_id, department_id, slot_id, start_at, end_at, mode, consult_type, fee_amount, status)
             select 'SC-HACK01', %L, %L, doctor_id, (select hospital_id from doctors where id = doctor_id), (select department_id from doctors where id = doctor_id), id, start_at, end_at, 'video', 'first', 0, 'confirmed' from slots where id = %L$q$,
-         :'anjali_pt', :'anjali', :'paid_slot'), 'row-level security');
+         :'anjali_pt', :'anjali', :'paid_slot'), 'permission denied');
 select pg_temp.expect_error('guard', 'cannot hold a slot for someone else''s patient',
   format($q$select hold_slot(%L, %L, %L, 'video', '{}')$q$, :'arun_doc', :'rajan_pt', :'paid_slot'), 'forbidden');
 

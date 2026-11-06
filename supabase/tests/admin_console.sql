@@ -126,8 +126,8 @@ select pg_temp.expect_value('onboard', 'certificate recorded after upload', $q$s
 select admin_submit_doctor(pg_temp.v('doc'));
 select pg_temp.expect_value('onboard', 'submitted → pending (submitter recorded)', $q$select verification_status || '/' || (submitted_by = auth.uid()) from doctors where id = pg_temp.v('doc')$q$, 'pending/true');
 select pg_temp.expect_error('verify', 'coordinators cannot verify', $q$select admin_verify_doctor(pg_temp.v('doc'), 'verified', 'Checked on the TCMC register')$q$, 'forbidden');
-select pg_temp.expect_value('verify', 'staff cannot edit the doctor row directly',
-  $q$with u as (update doctors set verification_status = 'verified' where id = pg_temp.v('doc') returning 1) select count(*)::text from u$q$, '0');
+select pg_temp.expect_error('verify', 'staff cannot edit the doctor row directly',
+  $q$update doctors set verification_status = 'verified' where id = pg_temp.v('doc')$q$, 'permission denied');
 select pg_temp.expect_value('verify', 'pending doctor is not in the patient directory', $q$select count(*)::text from search_doctors() where id = pg_temp.v('doc')$q$, '0');
 reset role;
 
@@ -196,7 +196,7 @@ select pg_temp.expect_error('roles', 'admins cannot change their own roles', for
 select pg_temp.expect_error('roles', 'only staff roles can be granted', format($q$select admin_set_staff_roles(%L, '{doctor}', 'Grant doctor role')$q$, :'staffu'), 'invalid_input');
 select pg_temp.expect_error('roles', 'patients with records cannot be made staff', format($q$select admin_set_staff_roles(%L, '{coordinator}', 'Grant coordinator')$q$, :'anjali'), 'no_email');
 select pg_temp.expect_error('roles', 'doctor logins cannot be made staff', format($q$select admin_set_staff_roles(%L, '{coordinator}', 'Grant coordinator')$q$, :'newdoc'), 'no_email');
-select pg_temp.expect_error('roles', 'roles cannot be inserted directly', format($q$insert into user_roles (user_id, role) values (%L, 'admin')$q$, :'staffu'), 'row-level security');
+select pg_temp.expect_error('roles', 'roles cannot be inserted directly', format($q$insert into user_roles (user_id, role) values (%L, 'admin')$q$, :'staffu'), 'permission denied');
 select admin_set_staff_roles(:'staffu', '{coordinator,finance}', 'New support coordinator');
 select pg_temp.expect_value('roles', 'staff roles set, patient role removed', format($q$select string_agg(role::text, ',' order by role::text) from user_roles where user_id = %L$q$, :'staffu'), 'coordinator,finance');
 select pg_temp.expect_value('roles', 'staff list includes the new user', $q$select (admin_users('new.coord', 'staff') -> 'rows' -> 0 ->> 'email')$q$, 'new.coordinator@sunrise.test');
