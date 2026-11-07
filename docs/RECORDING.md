@@ -8,7 +8,7 @@ Recording applies **only to consultations held through the app** (audio and vide
 | 11a | Consent, the recording record and its state machine, private storage, audit | **done** (migration `20261101000023_recording_consent.sql`) |
 | 11b | Doctor's start / stop buttons, both parties' consent prompts, the "recording" indicator, browser capture and upload | **done** |
 | 11c | Doctor plays a recording later: audited, short-lived link; access rules | **done** (migration `…025`, function `recording-playback`) |
-| 11d | Retention purge job, legal hold, stale-recording cleanup | planned |
+| 11d | Retention purge job, legal hold, stale-recording cleanup | **done** (migration `…026`, function `recordings-maintenance`) |
 
 ## The rules (11a)
 
@@ -39,6 +39,13 @@ Audio only (migration `…024` forces `kind = 'audio'`). The doctor's browser ca
 ## Playback (11c)
 
 Only the **treating doctor** can play a `ready` recording (patients, admins and coordinators cannot; admins see metadata). The `recording-playback` edge function calls `open_recording(id)` as the user (checks doctor and state, writes the audit entry `recording.played`), joins the parts once into `joined.webm` beside them (cached), and returns a signed link valid for 5 minutes; the storage path never reaches the browser. A recording with a missing part is refused (`parts_missing`). Playing works even when `recording_enabled` is later switched off. The doctor sees a "Recordings" card on the appointment page. **11d must delete the whole prefix (parts and `joined.webm`) when a recording is purged.**
+
+## Retention (11d)
+
+- **Retention period:** `app_settings.recording_retention_days` (default 90, a placeholder: set the hospital's period). A ready recording is kept until `retention_until`; a failed one (partial media) for the same period after it ended.
+- **Legal hold:** an admin calls `set_recording_legal_hold(recording, hold, reason)`; the reason is mandatory and audited (`recording.legal_hold`). A held recording is never purged, even past retention; releasing the hold makes it due again. (There is no admin screen for this yet: it is a database function.)
+- **Stale recordings:** a recording still `recording` / `uploading` after 6 hours is failed (`stop_reason = stale`), releasing the one-at-a-time lock.
+- **Purge:** the `recordings-maintenance` edge function (service role only, run **once a day** by the scheduler, like `integrations-dispatch`; the local gateway does it every 24 h) first fails stale recordings, then for each recording due: removes every file under its folder (parts and `joined.webm`), then calls `mark_recording_deleted`, which re-checks the hold and retention. The record stays (`status = 'deleted'`, `deleted_at`), audited as "Recording purged (retention)". If removal fails the record is left alone and retried next run.
 
 ## Tests
 

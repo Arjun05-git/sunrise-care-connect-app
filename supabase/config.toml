@@ -118,3 +118,5 @@ import_map = "./functions/deno.json"
 import_map = "./functions/deno.json"
 [functions.recording-playback]
 import_map = "./functions/deno.json"
+[functions.recordings-maintenance]
+import_map = "./functions/deno.json"
