@@ -73,6 +73,11 @@ class JitsiCall extends Emitter implements VideoCall {
     if (on) await this.setCamera(false);
   }
   setLocalElement() {}
+  /** The remote audio lives inside the cross-origin Jitsi iframe: not reachable, so a Jitsi call cannot be recorded. */
+  audioTracks(): MediaStreamTrack[] {
+    return [];
+  }
+
   async disconnect() {
     this.leaving = true;
     try { this.api.executeCommand('hangup'); } catch { /* already gone */ }

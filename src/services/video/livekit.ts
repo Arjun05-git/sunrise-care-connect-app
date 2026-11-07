@@ -126,6 +126,15 @@ class LivekitCall extends Emitter implements VideoCall {
     this.remoteChanged();
   }
 
+  audioTracks() {
+    const tracks: MediaStreamTrack[] = [];
+    const mic = this.room.localParticipant.getTrackPublication(Track.Source.Microphone)?.track?.mediaStreamTrack;
+    if (mic) tracks.push(mic);
+    for (const p of this.room.remoteParticipants.values())
+      for (const pub of p.audioTrackPublications.values()) if (pub.track?.mediaStreamTrack) tracks.push(pub.track.mediaStreamTrack);
+    return tracks;
+  }
+
   async disconnect() {
     this.leaving = true;
     await this.room.disconnect();

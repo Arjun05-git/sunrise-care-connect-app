@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useRecordingEnabled } from './recording/api';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -37,7 +38,8 @@ export function QualityIndicator({ quality, className, light }: { quality: Quali
 /** "Not recorded" reassurance shown in the waiting room and during the call. */
 export function NotRecorded({ className }: { className?: string }) {
   const { t } = useTranslation();
-  return <span className={cn('inline-flex items-center gap-1 text-xs', className)}><ShieldCheck className="h-3.5 w-3.5" aria-hidden />{t('consult.notRecorded')}</span>;
+  const enabled = useRecordingEnabled().data === true;
+  return <span className={cn('inline-flex items-center gap-1 text-xs', className)}><ShieldCheck className="h-3.5 w-3.5" aria-hidden />{t(enabled ? 'consult.notRecordedUnlessAgreed' : 'consult.notRecorded')}</span>;
 }
 
 export function Elapsed({ since }: { since: number | null }) {

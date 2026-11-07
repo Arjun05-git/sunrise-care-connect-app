@@ -32,6 +32,7 @@
     "mobile:ios": "cap open ios",
     "e2e:integrations": "node scripts/e2e-integrations.mjs",
     "e2e:pwa": "node scripts/e2e-pwa.mjs",
+    "e2e:recording-capture": "node scripts/e2e-recording-capture.mjs",
     "e2e:security": "node scripts/e2e-security.mjs",
     "e2e:journeys": "node scripts/e2e-journeys.mjs",
     "check:bundle": "node scripts/check-bundle.mjs",

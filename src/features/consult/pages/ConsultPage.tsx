@@ -18,6 +18,7 @@ import { DocumentList, NoteDialog, SymptomsView, useDoctorError } from '@/featur
 import { NotesEditor } from '@/features/clinical/notes';
 import { RxBuilder } from '@/features/clinical/rx';
 import { clockSkew, cqk, useConsultAccess, useConsultAppointment, type ConsultAccess, type ConsultAppointment } from '../api';
+import { RecordingPanel } from '../recording/RecordingPanel';
 import { ChatPanel, ControlButton, DeviceCheck, Elapsed, icons, NotRecorded, QualityIndicator, ReconnectBanner, WarningLine } from '../components';
 import { loadPrefs, useDeviceCheck } from '../devices';
 import { useCall } from '../useCall';
@@ -267,6 +268,8 @@ function CallStage({ id, access, appt, call, wantVideo, audioOnly, onLeave }: {
             {call.provider === 'livekit' && <QualityIndicator quality={quality} light />}
           </div>
         </header>
+
+        <div className="absolute left-4 top-16 z-20 max-w-[calc(100%-2rem)]"><RecordingPanel appointmentId={id} role={access.role} call={call} /></div>
 
         <div className="absolute inset-0">
           <div ref={call.setRemoteEl} className="flex h-full w-full items-center justify-center [&>iframe]:h-full [&>iframe]:w-full" data-ref="remote" />
