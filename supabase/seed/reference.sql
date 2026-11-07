@@ -397,7 +397,7 @@ insert into content_versions (key, version, revision, title_en, title_ml, body_e
 2. Teleconsultation is not for emergencies. In an emergency call 112 or go to the nearest emergency department.
 3. The doctor decides whether a teleconsultation is suitable and may advise an in-person visit. Some medicines cannot be prescribed by teleconsultation.
 4. You must give correct information about yourself and the family members you add, and keep your login private.
-5. Consultations are not recorded. Prescriptions and summaries are kept in your records.
+5. Consultations are not recorded unless both you and the doctor agree. Only the audio is recorded, only when the doctor starts it, and you can withdraw your consent at any time, which stops the recording. Prescriptions and summaries are kept in your records.
 6. Fees, free follow-ups, cancellations and refunds follow the Refund Policy.
 7. Grievances: see the contact details of the Grievance Officer in the app.', 'കരട് – സൺറൈസ് ചെയിൻ ഓഫ് ഹോസ്പിറ്റൽസ് അംഗീകരിച്ച വാചകം ഉപയോഗിച്ച് മാറ്റണം.
 
@@ -405,7 +405,7 @@ insert into content_versions (key, version, revision, title_en, title_ml, body_e
 2. ടെലികൺസൾട്ടേഷൻ അടിയന്തര സാഹചര്യങ്ങൾക്കുള്ളതല്ല. അടിയന്തര ഘട്ടത്തിൽ 112-ൽ വിളിക്കുക അല്ലെങ്കിൽ അടുത്തുള്ള എമർജൻസി വിഭാഗത്തിൽ പോകുക.
 3. ടെലികൺസൾട്ടേഷൻ അനുയോജ്യമാണോ എന്ന് ഡോക്ടർ തീരുമാനിക്കും; നേരിട്ട് കാണാൻ നിർദ്ദേശിച്ചേക്കാം. ചില മരുന്നുകൾ ടെലികൺസൾട്ടേഷനിൽ കുറിക്കാനാവില്ല.
 4. നിങ്ങളെയും നിങ്ങൾ ചേർക്കുന്ന കുടുംബാംഗങ്ങളെയും കുറിച്ച് ശരിയായ വിവരങ്ങൾ നൽകുകയും ലോഗിൻ സ്വകാര്യമായി സൂക്ഷിക്കുകയും വേണം.
-5. കൺസൾട്ടേഷനുകൾ റെക്കോർഡ് ചെയ്യുന്നില്ല. കുറിപ്പടികളും സംഗ്രഹങ്ങളും നിങ്ങളുടെ രേഖകളിൽ സൂക്ഷിക്കും.
+5. നിങ്ങളും ഡോക്ടറും സമ്മതിച്ചാലല്ലാതെ കൺസൾട്ടേഷനുകൾ റെക്കോർഡ് ചെയ്യില്ല. ഓഡിയോ മാത്രമേ റെക്കോർഡ് ചെയ്യൂ, ഡോക്ടർ ആരംഭിക്കുമ്പോൾ മാത്രം; നിങ്ങളുടെ സമ്മതം എപ്പോൾ വേണമെങ്കിലും പിൻവലിക്കാം, അപ്പോൾ റെക്കോർഡിംഗ് നിർത്തും. കുറിപ്പടികളും സംഗ്രഹങ്ങളും നിങ്ങളുടെ രേഖകളിൽ സൂക്ഷിക്കും.
 6. ഫീസ്, സൗജന്യ ഫോളോ-അപ്പ്, റദ്ദാക്കൽ, റീഫണ്ട് എന്നിവ റീഫണ്ട് നയം പ്രകാരം.
 7. പരാതികൾ: ആപ്പിലെ ഗ്രീവൻസ് ഓഫീസറുടെ വിവരങ്ങൾ കാണുക.', 'Initial draft'),
   ('privacy_notice', '1.0', 1, 'Privacy Notice', 'സ്വകാര്യതാ അറിയിപ്പ്', 'DRAFT – to be replaced by Sunrise Chain of Hospitals'' approved text.

@@ -116,3 +116,5 @@ import_map = "./functions/deno.json"
 import_map = "./functions/deno.json"
 [functions.video-token]
 import_map = "./functions/deno.json"
+[functions.recording-playback]
+import_map = "./functions/deno.json"

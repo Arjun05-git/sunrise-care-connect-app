@@ -21,6 +21,7 @@ import { dqk, useDaySlots, useDoctorAppointment, useDoctorCancel, useMyDoctor, u
 import { ApptStatus, DocumentList, NoteDialog, SymptomsView, useClinicSettings, useDoctorError, useNow } from '../components';
 import { JoinLink } from '@/features/consult/JoinLink';
 import { CallLogCard } from '@/features/consult/CallLogCard';
+import { RecordingsCard } from '@/features/consult/recording/RecordingsCard';
 
 type Dlg = null | 'technical' | 'noshow' | 'reschedule' | 'cancel';
 
@@ -126,6 +127,7 @@ export function AppointmentPage() {
           )}
 
           {now >= start - joinMs && <CallLogCard id={a.id} />}
+          <RecordingsCard appointmentId={a.id} />
 
           {a.status === 'confirmed' && start > now && (
             <Card>

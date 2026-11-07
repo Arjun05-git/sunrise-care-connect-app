@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { callFunction } from '@/lib/functions';
 import { getSupabase } from '@/lib/supabase';
 
 /** Recording data access: every write is an RPC from migration 20261101000023; parts go to the consult-recordings bucket. */
@@ -48,3 +49,6 @@ export function useRecordingEnabled() {
     },
   });
 }
+
+/** A short-lived link to the joined recording; the call is audited server-side. Treating doctor only. */
+export const playRecording = (recording: string) => callFunction<{ url: string; expires_in: number; mime_type: string }>('recording-playback', { recording_id: recording });

@@ -6,8 +6,8 @@ Recording applies **only to consultations held through the app** (audio and vide
 | Part | What | Status |
 |---|---|---|
 | 11a | Consent, the recording record and its state machine, private storage, audit | **done** (migration `20261101000023_recording_consent.sql`) |
-| 11b | Doctor's start / stop buttons, both parties' consent prompts, the "recording" indicator, browser capture and upload | planned |
-| 11c | Doctor plays a recording later: audited, short-lived link; access rules | planned |
+| 11b | Doctor's start / stop buttons, both parties' consent prompts, the "recording" indicator, browser capture and upload | **done** |
+| 11c | Doctor plays a recording later: audited, short-lived link; access rules | **done** (migration `…025`, function `recording-playback`) |
 | 11d | Retention purge job, legal hold, stale-recording cleanup | planned |
 
 ## The rules (11a)
@@ -35,6 +35,10 @@ Recording applies **only to consultations held through the app** (audio and vide
 ## Capture (11b)
 
 Audio only (migration `…024` forces `kind = 'audio'`). The doctor's browser captures: `AudioCapture` mixes the local mic and the remote audio tracks (Web Audio) and records opus/webm in 10 s slices; `ChunkUploader` uploads them in order as `part-000001.webm`… under the server-chosen prefix (retries; no chunk after a failed one; first part must carry the webm header). `useRecording` is the controller (phases off/idle/asked/invited/ready/recording/saving/interrupted); `RecordingPanel` is the UI in the call screen. Only LiveKit calls can be recorded (Jitsi's iframe hides the remote audio); Safari/iOS is unsupported. A server stop (consent withdrawn) makes the doctor's browser finish the upload; a recording left running by a closed tab can be ended from the panel. Real-browser check: `CHROMIUM_PATH=... npm run e2e:recording-capture`. Playback (joining parts) is 11c.
+
+## Playback (11c)
+
+Only the **treating doctor** can play a `ready` recording (patients, admins and coordinators cannot; admins see metadata). The `recording-playback` edge function calls `open_recording(id)` as the user (checks doctor and state, writes the audit entry `recording.played`), joins the parts once into `joined.webm` beside them (cached), and returns a signed link valid for 5 minutes; the storage path never reaches the browser. A recording with a missing part is refused (`parts_missing`). Playing works even when `recording_enabled` is later switched off. The doctor sees a "Recordings" card on the appointment page. **11d must delete the whole prefix (parts and `joined.webm`) when a recording is purged.**
 
 ## Tests
 

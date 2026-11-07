@@ -310,6 +310,38 @@ select pg_temp.expect_value('audit', 'recording starts, stops and finishes are i
 select pg_temp.expect_value('audit', 'the start carries its reason',
   $q$select (count(*) >= 1)::text from audit_logs where entity = 'consult_recordings' and reason = 'Recording started'$q$, 'true');
 
+
+-- ================================================================ K. playback: the treating doctor only, ready recordings only, every play audited
+select pg_temp.login(:'docuser');
+set local role authenticated;
+select pg_temp.expect_value('play', 'the treating doctor may open a ready recording (even with recording switched off)',
+  $q$select (open_recording(pg_temp.v('rec1')) ->> 'storage_prefix') like 'recordings/%'$q$, 'true');
+select pg_temp.expect_value('play', 'it returns the stored type', $q$select open_recording(pg_temp.v('rec1')) ->> 'mime_type'$q$, 'video/webm');
+select pg_temp.expect_error('play', 'a recording that is not ready cannot be opened', $q$select open_recording(pg_temp.v('rec2'))$q$, 'not_ready');
+select pg_temp.expect_error('play', 'unknown recording', $q$select open_recording(gen_random_uuid())$q$, 'not_found');
+reset role;
+select pg_temp.login(:'rajan');
+set local role authenticated;
+select pg_temp.expect_error('play', 'the patient cannot open it', $q$select open_recording(pg_temp.v('rec1'))$q$, 'not_found');
+reset role;
+select pg_temp.login(:'admin');
+set local role authenticated;
+select pg_temp.expect_error('play', 'an admin sees metadata only: cannot open it', $q$select open_recording(pg_temp.v('rec1'))$q$, 'not_found');
+reset role;
+select pg_temp.login(:'coord');
+set local role authenticated;
+select pg_temp.expect_error('play', 'a coordinator cannot open it', $q$select open_recording(pg_temp.v('rec1'))$q$, 'not_found');
+reset role;
+update consult_recordings set deleted_at = now(), status = 'deleted' where id = pg_temp.v('rec3');
+select pg_temp.login(:'docuser');
+set local role authenticated;
+select pg_temp.expect_error('play', 'a purged recording cannot be opened', $q$select open_recording(pg_temp.v('rec3'))$q$, 'not_ready');
+reset role;
+select pg_temp.expect_value('play', 'each successful play is in the audit log, with who played it',
+  $q$select (count(*) = 2)::text from audit_logs where action = 'recording.played' and actor_user_id = '$q$ || :'docuser' || $q$' and entity_id = '$q$ || pg_temp.s('rec1') || $q$'$q$, 'true');
+select pg_temp.expect_value('play', 'refused attempts are not logged as plays',
+  $q$select (count(*) = 2)::text from audit_logs where action = 'recording.played'$q$, 'true');
+
 \o
 select persona as area, check_name as "check", expected, actual, case when ok then '✓ PASS' else '✗ FAIL' end as result from t_results order by n;
 select count(*) filter (where ok) as passed, count(*) filter (where not ok) as failed from t_results \gset

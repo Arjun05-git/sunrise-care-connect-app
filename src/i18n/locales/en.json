@@ -1371,7 +1371,11 @@
         "consent_required": "Both of you must agree first.",
         "upload_failed": "Saving failed; the recording is incomplete.",
         "bad_header": "The recording could not be started properly."
-      }
+      },
+      "cardTitle": "Recordings",
+      "play": "Play",
+      "playFailed": "The recording could not be played. Try again.",
+      "auditNote": "Each time a recording is played, it is logged."
     },
     "notRecordedUnlessAgreed": "Not recorded unless both of you agree"
   },
