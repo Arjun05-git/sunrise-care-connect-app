@@ -32,6 +32,10 @@ Recording applies **only to consultations held through the app** (audio and vide
 - **Audit:** every consent change and every state change is in the audit log with who did it and why
   (`Recording started`, `Recording stopped`, `Recording consent withdrawn by the patient`, …).
 
+## Capture (11b)
+
+Audio only (migration `…024` forces `kind = 'audio'`). The doctor's browser captures: `AudioCapture` mixes the local mic and the remote audio tracks (Web Audio) and records opus/webm in 10 s slices; `ChunkUploader` uploads them in order as `part-000001.webm`… under the server-chosen prefix (retries; no chunk after a failed one; first part must carry the webm header). `useRecording` is the controller (phases off/idle/asked/invited/ready/recording/saving/interrupted); `RecordingPanel` is the UI in the call screen. Only LiveKit calls can be recorded (Jitsi's iframe hides the remote audio); Safari/iOS is unsupported. A server stop (consent withdrawn) makes the doctor's browser finish the upload; a recording left running by a closed tab can be ended from the panel. Real-browser check: `CHROMIUM_PATH=... npm run e2e:recording-capture`. Playback (joining parts) is 11c.
+
 ## Tests
 
 `supabase/tests/recording.sql` (66 checks): the switch, consent (both parties, strangers, withdrawal), starting rules, one at a time,

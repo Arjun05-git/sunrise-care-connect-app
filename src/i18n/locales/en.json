@@ -1348,7 +1348,32 @@
       "reconnects": "Reconnects",
       "provider": "Video service",
       "failures": "Problems"
-    }
+    },
+    "rec": {
+      "ask": "Ask patient to allow audio recording",
+      "waitingPatient": "Waiting for the patient to agree…",
+      "cancelAsk": "Cancel",
+      "invite": "The doctor would like to record the audio of this consultation. You can say no.",
+      "allow": "Allow",
+      "agreed": "You agreed to audio recording. It starts only when the doctor starts it.",
+      "withdraw": "Withdraw consent",
+      "start": "Start recording",
+      "stop": "Stop recording",
+      "recording": "Audio is being recorded",
+      "saving": "Saving the recording…",
+      "interrupted": "A recording was left running",
+      "endInterrupted": "End and save it",
+      "error": {
+        "generic": "The recording could not be completed.",
+        "unsupported_provider": "This call type cannot be recorded.",
+        "unsupported_browser": "This browser cannot record. Use Chrome, Edge or Firefox.",
+        "no_audio": "No audio to record yet.",
+        "consent_required": "Both of you must agree first.",
+        "upload_failed": "Saving failed; the recording is incomplete.",
+        "bad_header": "The recording could not be started properly."
+      }
+    },
+    "notRecordedUnlessAgreed": "Not recorded unless both of you agree"
   },
   "clinical": {
     "page": {

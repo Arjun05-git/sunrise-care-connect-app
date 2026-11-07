@@ -188,11 +188,13 @@ export function useCall(appointmentId: string) {
     void teardown();
   }, [flushQuality, teardown]);
 
+  /** The call's audio tracks right now (own microphone + remote voices): what a recording is made from. */
+  const audioTracks = useCallback(() => call.current?.audioTracks() ?? [], []);
   const setRemoteEl = useCallback((el: HTMLElement | null) => { els.current.remote = el; }, []);
   const setLocalEl = useCallback((el: HTMLVideoElement | null) => {
     els.current.local = el;
     call.current?.setLocalElement(el);
   }, []);
 
-  return { phase, quality, remote, media, error, provider, embedsUi, connectedAt, retries, retryPending, maxRetries: RETRY_DELAYS.length, join, reconnect, leave, reportProblem, setMic, setCamera, setAudioOnly, setRemoteEl, setLocalEl };
+  return { phase, quality, remote, media, error, provider, embedsUi, connectedAt, retries, retryPending, maxRetries: RETRY_DELAYS.length, join, reconnect, leave, audioTracks, reportProblem, setMic, setCamera, setAudioOnly, setRemoteEl, setLocalEl };
 }

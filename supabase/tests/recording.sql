@@ -168,8 +168,8 @@ reset role;
 select pg_temp.login(:'docuser');
 set local role authenticated;
 insert into t_vars select 'rec1', (start_recording(pg_temp.v('live')) ->> 'id');
-select pg_temp.expect_value('start', 'started by hand by the treating doctor: kind follows the consultation',
-  $q$select kind || '/' || status || '/' || (started_by = auth.uid()) from consult_recordings where id = pg_temp.v('rec1')$q$, 'video/recording/true');
+select pg_temp.expect_value('start', 'started by hand by the treating doctor; AUDIO only, even on a video consultation',
+  $q$select kind || '/' || status || '/' || (started_by = auth.uid()) from consult_recordings where id = pg_temp.v('rec1')$q$, 'audio/recording/true');
 select pg_temp.expect_error('start', 'one recording at a time', $q$select start_recording(pg_temp.v('live'))$q$, 'already_recording');
 reset role;
 

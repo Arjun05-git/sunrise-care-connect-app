@@ -5,7 +5,7 @@ import { isDemo } from './config';
 import { ensureRealtimeAuth, getSupabase } from './supabase';
 
 export interface RealtimeSource {
-  table: 'appointments' | 'reschedule_requests' | 'notifications' | 'slots' | 'chat_messages' | 'call_logs';
+  table: 'appointments' | 'reschedule_requests' | 'notifications' | 'slots' | 'chat_messages' | 'call_logs' | 'recording_consents' | 'consult_recordings';
   /** PostgREST-style filter Supabase Realtime understands, e.g. `doctor_id=eq.<uuid>` */
   filter?: string;
 }

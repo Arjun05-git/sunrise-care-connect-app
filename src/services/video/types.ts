@@ -1,7 +1,8 @@
 /**
  * VideoProvider: the app talks to this interface only. LiveKit is the production SFU; Jitsi (IFrame API)
  * is a demo fallback. Credentials come from the `video-token` edge function, which only issues them
- * inside the join window. Recording is never started by either provider.
+ * inside the join window. Neither provider records: recording is done in the browser by features/consult/recording, by hand,
+ * with both parties' consent.
  */
 export type VideoProviderName = 'livekit' | 'jitsi';
 
@@ -51,6 +52,11 @@ export interface VideoCall {
   /** stop sending and receiving video (bandwidth saver); audio continues */
   setAudioOnly(on: boolean): Promise<void>;
   setLocalElement(el: HTMLVideoElement | null): void;
+  /**
+   * The audio of this call as raw tracks (own microphone + the remote voices), for recording. Empty when the provider does not
+   * expose them: the Jitsi iframe is cross-origin, so only LiveKit calls can be recorded.
+   */
+  audioTracks(): MediaStreamTrack[];
   disconnect(): Promise<void>;
 }
 
