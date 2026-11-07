@@ -11,7 +11,7 @@ import { startRealtime } from './realtime.ts';
 
 const PORT = Number(process.env.GATEWAY_PORT ?? 54321);
 const upstream: Record<string, number> = { auth: 9999, rest: 3000, storage: 5000 };
-const FUNCTIONS = ['payments-create-order', 'payments-verify', 'payments-webhook', 'payments-mock-checkout', 'payments-refund', 'payments-receipt', 'video-token', 'video-webhook', 'prescription-pdf', 'prescription-verify', 'doctor-signature', 'notifications-dispatch', 'notifications-webhook', 'admin-users', 'integrations-dispatch', 'abha', 'documents-register', 'auth-sms-hook', 'system-status'];
+const FUNCTIONS = ['payments-create-order', 'payments-verify', 'payments-webhook', 'payments-mock-checkout', 'payments-refund', 'payments-receipt', 'video-token', 'video-webhook', 'prescription-pdf', 'prescription-verify', 'doctor-signature', 'notifications-dispatch', 'notifications-webhook', 'admin-users', 'integrations-dispatch', 'abha', 'documents-register', 'auth-sms-hook', 'system-status', 'recording-playback', 'recordings-maintenance'];
 const loaded = new Map<string, (req: Request) => Promise<Response>>();
 
 async function fn(name: string) {
@@ -120,3 +120,6 @@ const doctorMaster = () => service('integrations-dispatch', { job: 'doctor_maste
 setTimeout(doctorMaster, 20_000);
 setInterval(doctorMaster, 24 * 3600_000);
 
+const recordingsMaintenance = () => service('recordings-maintenance', {}).catch((e) => console.error('recordings_maintenance_error', (e as Error).message));
+setTimeout(recordingsMaintenance, 30_000);
+setInterval(recordingsMaintenance, 24 * 3600_000);

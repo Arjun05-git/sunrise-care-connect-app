@@ -16,3 +16,29 @@ export async function joinParts(prefix: string, parts: string[], read: (path: st
   for (const c of chunks) { out.set(c, at); at += c.length; }
   return out;
 }
+
+export interface MaintenanceDeps {
+  expireStale: () => Promise<number>;
+  due: () => Promise<{ id: string; prefix: string }[]>;
+  listNames: (prefix: string) => Promise<string[]>;
+  remove: (paths: string[]) => Promise<void>;
+  markDeleted: (id: string) => Promise<void>;
+}
+
+/** Fails stale recordings, then purges the recordings past retention: media first, record second, one at a time so one failure never stops the rest. */
+export async function runRecordingMaintenance(d: MaintenanceDeps): Promise<{ expired: number; purged: number; failed: number }> {
+  const expired = await d.expireStale();
+  let purged = 0;
+  let failed = 0;
+  for (const rec of await d.due()) {
+    try {
+      const names = await d.listNames(rec.prefix);
+      if (names.length) await d.remove(names.map((n) => rec.prefix + n));
+      await d.markDeleted(rec.id);
+      purged += 1;
+    } catch {
+      failed += 1; // retried on the next run
+    }
+  }
+  return { expired, purged, failed };
+}

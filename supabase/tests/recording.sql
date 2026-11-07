@@ -342,6 +342,74 @@ select pg_temp.expect_value('play', 'each successful play is in the audit log, w
 select pg_temp.expect_value('play', 'refused attempts are not logged as plays',
   $q$select (count(*) = 2)::text from audit_logs where action = 'recording.played'$q$, 'true');
 
+
+-- ================================================================ L. retention: stale cleanup, legal hold, purge
+grant all on t_results to service_role;
+grant usage on sequence t_results_n_seq to service_role;
+grant select on t_vars to service_role;
+update consult_recordings set status = 'failed', ended_at = coalesce(ended_at, now()) where status in ('recording', 'uploading');
+create function pg_temp.fixture(p_key text, p_appt uuid, p_status text, p_started interval, p_ended interval, p_retention interval, p_hold boolean) returns void language plpgsql as $$
+declare nid uuid := gen_random_uuid();
+begin
+  insert into consult_recordings (id, appointment_id, patient_id, doctor_id, kind, started_by, storage_prefix, status, started_at, ended_at, retention_until, legal_hold, mime_type, size_bytes)
+  select nid, p_appt, r.patient_id, r.doctor_id, 'audio', r.started_by, 'recordings/' || p_appt || '/' || nid || '/', p_status, now() - p_started,
+         case when p_ended is null then null else now() - p_ended end, case when p_retention is null then null else now() + p_retention end, p_hold, 'audio/webm', 1000
+    from consult_recordings r where r.id = pg_temp.v('rec1');
+  insert into t_vars values (p_key, nid::text);
+end $$;
+select pg_temp.fixture('dueA',    (select appointment_id from consult_recordings where id = pg_temp.v('rec1')), 'ready',  interval '100 days', interval '100 days', interval '-1 day', false);
+select pg_temp.fixture('heldB',   (select appointment_id from consult_recordings where id = pg_temp.v('rec1')), 'ready',  interval '100 days', interval '100 days', interval '-1 day', true);
+select pg_temp.fixture('futureC', (select appointment_id from consult_recordings where id = pg_temp.v('rec1')), 'ready',  interval '1 day',    interval '1 day',    interval '30 days', false);
+select pg_temp.fixture('oldFailE',(select appointment_id from consult_recordings where id = pg_temp.v('rec1')), 'failed', interval '200 days', interval '200 days', null, false);
+select pg_temp.fixture('staleD',  (select appointment_id from consult_recordings where id = pg_temp.v('rec1')), 'recording', interval '7 hours', null, null, false);
+select pg_temp.fixture('freshF',  (select id from appointments where id <> (select appointment_id from consult_recordings where id = pg_temp.v('rec1')) limit 1), 'recording', interval '1 hour', null, null, false);
+
+select pg_temp.login(:'docuser');
+set local role authenticated;
+select pg_temp.expect_error('retention', 'a doctor cannot run the maintenance functions', $q$select expire_stale_recordings(6)$q$, 'permission denied');
+select pg_temp.expect_error('retention', 'a doctor cannot list what is due for purge', $q$select * from recordings_due_for_purge()$q$, 'permission denied');
+select pg_temp.expect_error('retention', 'a doctor cannot delete a recording', $q$select mark_recording_deleted(pg_temp.v('dueA'))$q$, 'permission denied');
+select pg_temp.expect_error('retention', 'a doctor cannot place a legal hold', $q$select set_recording_legal_hold(pg_temp.v('futureC'), true, 'x')$q$, 'forbidden');
+reset role;
+
+select pg_temp.login(:'admin');
+set local role authenticated;
+select pg_temp.expect_error('hold', 'a hold needs a reason', $q$select set_recording_legal_hold(pg_temp.v('futureC'), true, '  ')$q$, 'reason_required');
+select pg_temp.expect_error('hold', 'unknown recording', $q$select set_recording_legal_hold(gen_random_uuid(), true, 'case 12')$q$, 'not_found');
+select pg_temp.expect_value('hold', 'an admin can place a hold', $q$select (set_recording_legal_hold(pg_temp.v('futureC'), true, 'case 12') ->> 'legal_hold')$q$, 'true');
+reset role;
+select pg_temp.expect_value('hold', 'the hold is in the audit log with its reason and who placed it',
+  $q$select (count(*) = 1)::text from audit_logs where action = 'recording.legal_hold' and entity_id = '$q$ || pg_temp.s('futureC') || $q$' and actor_user_id = '$q$ || :'admin' || $q$' and reason = 'case 12'$q$, 'true');
+
+set local role service_role;
+select pg_temp.expect_value('retention', 'stale cleanup fails recordings left running too long (one here)', $q$select expire_stale_recordings(6)::text$q$, '1');
+reset role;
+select pg_temp.expect_value('retention', '... with a reason, and a fresh one is left alone',
+  $q$select (select stop_reason from consult_recordings where id = pg_temp.v('staleD')) || '/' || (select status from consult_recordings where id = pg_temp.v('freshF'))$q$, 'stale/recording');
+
+set local role service_role;
+select pg_temp.expect_value('retention', 'due for purge: past retention and not held; a failed one counts from when it ended',
+  $q$select string_agg(x.k, ',' order by x.k) from (select 'dueA' k where exists (select 1 from recordings_due_for_purge() d where d.id = pg_temp.v('dueA'))
+      union all select 'oldFailE' where exists (select 1 from recordings_due_for_purge() d where d.id = pg_temp.v('oldFailE'))) x$q$, 'dueA,oldFailE');
+select pg_temp.expect_value('retention', 'a held, a future and a just-failed recording are not due',
+  $q$select count(*)::text from recordings_due_for_purge() d where d.id in (pg_temp.v('heldB'), pg_temp.v('futureC'), pg_temp.v('staleD'), pg_temp.v('freshF'))$q$, '0');
+select pg_temp.expect_error('retention', 'a held recording cannot be deleted', $q$select mark_recording_deleted(pg_temp.v('heldB'))$q$, 'legal_hold');
+select pg_temp.expect_error('retention', 'one still within retention cannot be deleted', $q$select mark_recording_deleted(pg_temp.v('futureC'))$q$, 'legal_hold');
+select pg_temp.expect_value('retention', 'a due recording is marked deleted', $q$select mark_recording_deleted(pg_temp.v('dueA')) ->> 'status'$q$, 'deleted');
+select pg_temp.expect_ok('retention', 'a failed one is too', $q$select mark_recording_deleted(pg_temp.v('oldFailE'))$q$);
+reset role;
+select pg_temp.expect_value('retention', 'deleted_at is set', $q$select (deleted_at is not null)::text from consult_recordings where id = pg_temp.v('dueA')$q$, 'true');
+select pg_temp.expect_value('retention', 'the deletion is audited as the system', $q$select (count(*) = 2)::text from audit_logs where entity = 'consult_recordings' and reason = 'Recording purged (retention)'$q$, 'true');
+
+select pg_temp.login(:'admin');
+set local role authenticated;
+select pg_temp.expect_value('hold', 'releasing the hold works', $q$select (set_recording_legal_hold(pg_temp.v('heldB'), false, 'case closed') ->> 'legal_hold')$q$, 'false');
+reset role;
+set local role service_role;
+select pg_temp.expect_value('hold', '... and the recording is due again', $q$select count(*)::text from recordings_due_for_purge() d where d.id = pg_temp.v('heldB')$q$, '1');
+select pg_temp.expect_error('retention', 'a recording within retention (not held) is refused as not_due', $q$select mark_recording_deleted(pg_temp.v('freshF'))$q$, 'not_due');
+reset role;
+
 \o
 select persona as area, check_name as "check", expected, actual, case when ok then '✓ PASS' else '✗ FAIL' end as result from t_results order by n;
 select count(*) filter (where ok) as passed, count(*) filter (where not ok) as failed from t_results \gset
